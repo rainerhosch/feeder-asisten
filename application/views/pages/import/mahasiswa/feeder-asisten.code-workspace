@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "../../../../.."
+		},
+		{
+			"path": "../../../../../../erepository"
+		},
+		{
+			"path": "../../../../../../WastuGoFeeder"
+		},
+		{
+			"path": "../../../../../../ocr-scanner"
+		}
+	],
+	"settings": {}
+}
