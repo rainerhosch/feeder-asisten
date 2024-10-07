@@ -65,7 +65,8 @@
                                     <tr>
                                         <td>
                                             <div class="form-group">
-                                                <select class="form-control form-control-sm" id="filter_prodi" name="filter_prodi">
+                                                <select class="form-control form-control-sm" id="filter_prodi"
+                                                    name="filter_prodi">
                                                 </select>
                                             </div>
                                         </td>
@@ -92,7 +93,8 @@
                                     <tr>
                                         <td>
                                             <div class="form-group">
-                                                <select class="form-control form-control-sm" id="filter_angkatan" name="filter_angkatan">
+                                                <select class="form-control form-control-sm" id="filter_angkatan"
+                                                    name="filter_angkatan">
                                                 </select>
                                             </div>
                                         </td>
@@ -155,7 +157,8 @@
         <div class="block-title">
             <h2>Data <?= $page ?></h2>
             <div class="block-options pull-right">
-            SYNC TO FEEDER <button class="btn btn-sm btn-info btn_sync_all" disabled><i class="hi hi-refresh"></i></button>
+                SYNC TO FEEDER <button class="btn btn-sm btn-info btn_sync_all" disabled><i
+                        class="hi hi-refresh"></i></button>
             </div>
             <div class="block-options pull-right">
                 <button class="btn btn-success btn-sm btn_cetak_excel">CETAK EXCEL</button>
@@ -165,7 +168,8 @@
             <div class="col-sm-6 col-xs-5">
                 <div class="dataTables_length">
                     <label>
-                        <select id="datatable_length" name="datatable_length" aria-controls="edatatable" class="form-control">
+                        <select id="datatable_length" name="datatable_length" aria-controls="edatatable"
+                            class="form-control">
                             <option value="10">10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
@@ -178,7 +182,8 @@
                 <div id="datatable_filter" class="dataTables_filter">
                     <label>
                         <div class="input-group">
-                            <input type="search" class="form-control datatable_filter" placeholder="Cari by name..." aria-controls="datatable">
+                            <input type="search" class="form-control datatable_filter" placeholder="Cari by name..."
+                                aria-controls="datatable">
                             <!-- <span class="input-group-addon"><i class="fa fa-search"></i></span> -->
                         </div>
                     </label>
@@ -204,7 +209,7 @@
                         <th class="">Status</th>
                         <th class="text-center">Angkatan</th>
                         <th class="text-center">Sync Status</th>
-                        <!-- <th class="text-center">Action</th> -->
+                        <th class="text-center">Syns NIM</th>
                     </tr>
                 </thead>
                 <tbody id="data_mahasiswa_tbody">
@@ -229,7 +234,7 @@
     <script src="<?= base_url(); ?>assets/templates/proui/js/tokenChecker.js"></script>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             var prodi_set = '';
             var set_angkatan = '';
             // var cookieValue = null;
@@ -238,11 +243,11 @@
                 type: 'GET',
                 serverSide: true,
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     let prodiOnCookie = Cookies.get("filterProdi");
                     $("#filter_prodi").empty();
                     let html = `<option class="text-center" value="">--Pilih Filter--</option>`;
-                    $.each(response.data, function(i, item) {
+                    $.each(response.data, function (i, item) {
                         if (parseInt(item.id) === parseInt(prodiOnCookie)) {
                             html += `<option class="text-center" value="${item.id}" selected>${item.nama_program_studi} (${item.nama_jenjang_pendidikan})</option>`;
                         } else {
@@ -258,7 +263,7 @@
                 type: 'GET',
                 serverSide: true,
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     // console.log(response);
                     let angkatanOnCookie = Cookies.get("filterAngkatan");
                     if (angkatanOnCookie === undefined) {
@@ -267,7 +272,7 @@
                     }
                     $("#thn_angkatan").empty();
                     let html = ``;
-                    $.each(response.angkatan, function(i, value) {
+                    $.each(response.angkatan, function (i, value) {
                         if (parseInt(value.id) === parseInt(angkatanOnCookie)) {
                             html += `<option class="text-center" value="${value.id}" selected>${value.tahun}</option>`;
                         } else {
@@ -280,7 +285,7 @@
             // console.log(Cookies.get("filterProdi"))
             // console.log(Cookies.get("filterAngkatan"))
 
-            $('#filter_prodi').on('change', function() {
+            $('#filter_prodi').on('change', function () {
                 var cookieValue = $(this).val();
                 if (cookieValue != '') {
                     prodi_set = cookieValue;
@@ -291,7 +296,7 @@
                     deleteAllCookies('filterProdi')
                 }
             });
-            $('#filter_angkatan').on('change', function() {
+            $('#filter_angkatan').on('change', function () {
                 var cookieValue = $(this).val();
                 // console.log(cookieValue)
                 if (cookieValue != '') {
@@ -338,11 +343,11 @@
                 type: 'GET',
                 serverSide: true,
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     console.log(response)
                     $("#thn_angkatan").empty();
                     let html = `<option class="text-center" value="x">--Pilih Angkatan--</option>`;
-                    $.each(response.angkatan, function(i, value) {
+                    $.each(response.angkatan, function (i, value) {
                         html += `<option class="text-center" value="${value.id}">Angkatan | ${value.tahun}</option>`;
                     });
                     $("#thn_angkatan").append(html);
@@ -358,7 +363,7 @@
             //     }
             // });
 
-            const syncData = function() {
+            const syncData = function () {
                 swal.fire({
                     title: 'Menyinkronkan Data',
                     allowEscapeKey: false,
@@ -368,7 +373,7 @@
                         swal.showLoading();
                     }
                 }).then(
-                    () => {},
+                    () => { },
                     (dismiss) => {
                         if (dismiss === 'timer') {
                             console.log('closed by timer!!!!');
@@ -383,7 +388,7 @@
                 )
             };
 
-            const loader = function() {
+            const loader = function () {
                 swal.fire({
                     title: 'Menyinkronkan Data',
                     allowEscapeKey: false,
@@ -394,8 +399,8 @@
                 });
             }
 
-            $('.btn_sync_all').on('click', function() {
-                let angkatan =  $('#filter_angkatan').val();
+            $('.btn_sync_all').on('click', function () {
+                let angkatan = $('#filter_angkatan').val();
                 let prodi = $('#filter_prodi').val();
                 // console.log(angkatan)
                 // console.log(prodi)
@@ -404,15 +409,15 @@
                     type: 'POST',
                     data: {
                         angkatan: angkatan,
-                        prodi : prodi
+                        prodi: prodi
                     },
-                    beforeSend: function() {
+                    beforeSend: function () {
                         // setting a timeout
                         loader();
                     },
                     // serverSide: true,
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         // loader.close();
                         console.log(response)
                         let icon = '';
@@ -425,7 +430,7 @@
                             icon: icon,
                             title: `<i>${response.res_code}</i>`,
                             html: `<i>${response.msg}.</i></br><b><a target="blank" href="<?= base_url() ?>sync_data/Mahasiswa/detail_mhs/${response.data.id_pd}">Cek Data</a></b>`,
-                        }).then(function(isConfirm) {
+                        }).then(function (isConfirm) {
                             location.reload();
                         });
                     }
@@ -434,26 +439,26 @@
 
 
             var limit = $('select[name="datatable_length"]').val();
-            $('select[name="datatable_length"]').on('change', function() {
+            $('select[name="datatable_length"]').on('change', function () {
                 let limit = $(this).val();
                 loadPagination(limit);
             });
             loadPagination(limit);
 
-            $(".datatable_filter").keyup(function(e) {
+            $(".datatable_filter").keyup(function (e) {
                 e.preventDefault();
                 let keyword = $(this).val();
                 let offset = $(this).attr('data-ci-pagination-page');
-                if(keyword != ''){
+                if (keyword != '') {
                     loadFilter(keyword);
-                }else{
+                } else {
                     loadPagination(limit, offset);
                     // console.log(Cookies.get("filterProdi"))
                     // console.log(Cookies.get("filterAngkatan"))
                 }
                 // console.log(keyword)
             });
-            $('#pagination').on('click', 'a', function(e) {
+            $('#pagination').on('click', 'a', function (e) {
                 e.preventDefault();
                 let limit = $('#datatable_length').val();
                 let offset = $(this).attr('data-ci-pagination-page');
@@ -476,7 +481,7 @@
                     },
                     serverSide: true,
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         // console.log(response);
                         let limit = response.data.limit_per_page;
                         let data_mhs = response.data.mhs;
@@ -509,7 +514,7 @@
                     },
                     serverSide: true,
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         // console.log(response);
                         let limit = response.data.limit_per_page;
                         let data_mhs = response.data.mhs;
@@ -539,8 +544,8 @@
                     } else {
                         $('#pagination').removeClass('hidden')
                     }
-                    $('#datatable_info').html(`<strong>${offset+1}</strong>-<strong>${numEnd}</strong> dari <strong>${total_data}</strong> Record`);
-                    $.each(data_mhs, function(k, mhs) {
+                    $('#datatable_info').html(`<strong>${offset + 1}</strong>-<strong>${numEnd}</strong> dari <strong>${total_data}</strong> Record`);
+                    $.each(data_mhs, function (k, mhs) {
                         html += `<tr>`;
                         html += `<td class="text-center">${no++}</td>`;
                         html += `<td class="">${mhs.nipd}</td>`;
@@ -553,16 +558,31 @@
                         html += `<td class="">${mhs.status}</td>`;
                         html += `<td class="text-center">${mhs.angkatan}</td>`;
                         html += `<td class="text-center" id="status_${mhs.id_pd}">`;
-                        if(mhs.aktif_krs === 0){
+                        if (mhs.aktif_krs === 0) {
                             html += `<span class="badge badge-pill badge-danger">Tidak KRS</span>`;
-                        }else{
+                        } else {
                             if (mhs.id_feeder != '') {
                                 html += `<span class="badge badge-pill badge-success">success</span>`;
                             } else {
                                 html += `<a href="javascript:void(0)" class="btn btn-xs btn-info btn_syn_data" data-nipd="${mhs.nipd}" data-id_pd="${mhs.id_pd}" data-nm_pd="${mhs.nm_pd}" data-toggle="tooltip" title="Insert to Feeder"><i class="hi hi-refresh"></i></a>`;
                             }
                         }
-                        // html += `</td>`;
+                        html += `</td>`;
+                        html += `<td class="text-center" id="history_status_${mhs.id_pd}">`;
+                        if (mhs.aktif_krs === 0) {
+                            html += `<span class="badge badge-pill badge-danger">Tidak KRS</span>`;
+                        } else {
+                            if (mhs.id_feeder != '') {
+                                if (mhs.sync_history === 1) {
+                                    html += `<span class="badge badge-pill badge-info"><i class="fa fa-check"></i></span>`;
+                                } else {
+                                    html += `<button href="javascript:void(0)" class="btn btn-xs btn-warning btnSyncHistori" data-nipd="${mhs.nipd}" data-id_pd="${mhs.id_pd}" data-nm_pd="${mhs.nm_pd}" data-toggle="tooltip" title="Insert NIM to Feeder"><i class="hi hi-refresh"></i></button>`;
+                                }
+                            } else {
+                                html += `<span class="badge badge-pill badge-danger">Not Sync Biodata</span>`;
+                            }
+                        }
+                        html += `</td>`;
                         // html += `<td class="text-center">`;
                         // html += `<a class="btn btn-xs btn-success"><i class="gi gi-search"></i></a> `;
                         // html += `<a class="btn btn-xs btn-warning"><i class="hi hi-pencil"></i></a> `;
@@ -586,7 +606,60 @@
                 $('#data_mahasiswa_tbody').html(html);
                 // new DataTable('#menu-datatable');
 
-                $(".btn_syn_data").on('click', function() {
+                $('.btnSyncHistori').on('click', function () {
+                    let id_pd = $(this).data('id_pd');
+                    $.ajax({
+                        type: "POST",
+                        url: `<?= base_url() . $dir . '/' . $page ?>/sync_histori_pendidikan`,
+                        data: {
+                            id_pd: id_pd,
+                        },
+                        dataType: "json",
+                        beforeSend: function () {
+                            Swal.fire({
+                                // title: 'Uploading...',
+                                html: 'Please wait...',
+                                allowEscapeKey: false,
+                                allowOutsideClick: false,
+                                didOpen: () => {
+                                    Swal.showLoading()
+                                }
+                            });
+                        },
+                        success: function (response) {
+                            console.log(response)
+                            if (response.status === true) {
+                                title = `Success`;
+                                icon = `success`;
+                            } else {
+                                title = `Error!`;
+                                icon = `error`;
+                            }
+                            Swal.fire({
+                                html: response.msg,
+                                icon: icon,
+                                showConfirmButton: true,
+                            }).then(() => {
+                                // location.reload();
+                                $(`#history_status_${id_pd}`).html(`<span class="badge badge-pill badge-info"><i class="fa fa-check"></i></span>`);
+                            });
+                        },
+                        error: function () {
+                            swal.fire({
+                                icon: 'error',
+                                html: '<h5>Koneksi Server Terputus! Seperti aku dengan dia.</h5>'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        }
+                    });
+
+                });
+
+
+
+
+                $(".btn_syn_data").on('click', function () {
                     let id_pd = $(this).data('id_pd');
                     let nm_pd = $(this).data('nm_pd');
                     let nipd = $(this).data('nipd');
@@ -602,7 +675,7 @@
                         },
                         serverSide: true,
                         dataType: 'json',
-                        success: function(response) {
+                        success: function (response) {
                             console.log(response);
                             let icon = '';
                             if (response.status != true) {
@@ -610,7 +683,7 @@
                                     icon: 'error',
                                     title: `<i>Error : ${response.res_code}</i>`,
                                     html: `<i>${response.msg}.</i></br><b><a target="_blank" href="<?= base_url() ?>import/Mahasiswa/detail?id=${id_pd}">Perbaiki Data</a></b>`,
-                                }).then(function(isConfirm) {
+                                }).then(function (isConfirm) {
                                     // $('#status').append();
                                 });
                             } else {
@@ -619,21 +692,22 @@
                                     icon: 'success',
                                     title: `<i>Sucess</i>`,
                                     html: `<i>${response.msg}.</i></br><b><a href="<?= base_url() ?>import/Mahasiswa/histori_pendidikan?id=${id_pd}">Tambahkan Histori Pendidikan</a></b>`,
-                                }).then(function(isConfirm) {
+                                }).then(function (isConfirm) {
                                     $(`#status_${id_pd}`).html(`<span class="badge badge-pill badge-success">success</span>`);
+                                    $(`#history_status_${id_pd}`).html(`<button href="javascript:void(0)" class="btn btn-xs btn-warning btnSyncHistori" data-nipd="${nipd}" data-id_pd="${id_pd}" data-nm_pd="${nm_pd}" data-toggle="tooltip" title="Insert NIM to Feeder"><i class="hi hi-refresh"></i></button>`);
                                 });
                             }
                         }
                     });
                 });
 
-                $(".btn_detail_mhs").on('click', function() {
+                $(".btn_detail_mhs").on('click', function () {
                     let id_pd = $(this).attr('id_pd');
                     window.open(`<?= base_url() . $dir . '/' . $page ?>/detail?id=${id_pd}`);
                 });
             }
 
-            $('.btn_cetak_excel').on('click', function(){
+            $('.btn_cetak_excel').on('click', function () {
                 alert('belum aktif');
             })
         });

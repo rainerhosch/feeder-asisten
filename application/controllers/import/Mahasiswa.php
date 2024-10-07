@@ -717,6 +717,10 @@ class Mahasiswa extends CI_Controller
     public function get_list_data()
     {
         if ($this->input->is_ajax_request()) {
+            
+            $Conf = $this->feeder->get_data()->row(); // Get data config
+            $this->__token__ = get_token($Conf); // Get Token Feeder from config account
+
             $tahun_angkatan = '2024';
             $data_post = $this->input->post();
             $post_limit = $this->input->post('limit');
@@ -805,6 +809,32 @@ class Mahasiswa extends CI_Controller
             // dump($resMhs);
             // die;
             foreach ($resMhs as $i => $val) {
+                $sync_status = 0;
+                
+                $data_param = [
+                    'token' => $this->__token__,
+                    "act" => 'GetListRiwayatPendidikanMahasiswa',
+                    "filter" => "nim = '" . $val['nipd'] . "'",
+                    "limit" => "",
+                    "offset" => ""
+                ];
+                $response = service_request($data_param, $Conf);
+                // dump($response);
+                // die;
+                $jsonResponse = json_encode($response);
+                $data = json_decode($jsonResponse, true);
+                if ($response->error_code == 0) {
+                    if (count($data['data']) > 0) {
+                        $sync_status = 1;
+                    }
+                } else {
+                    $sync_status = 99;
+                    $msg_sync = 'Koneksi terputus.';
+                }
+                $resMhs[$i]['sync_history'] = $sync_status;
+
+
+
                 $resMhs[$i]['aktif_krs'] = 1;
                 // $param_mpt = [
                 //     'table' => 'mahasiswa_pt',
