@@ -32,6 +32,9 @@ class M_mahasiswa extends CI_Model
         if (isset($data['where'])) {
             $this->db_simak->where($data['where']);
         }
+        if (isset($data['where_like'])) {
+            $this->db_simak->like($data['where_like']['title'], $data['where_like']['query'], 'after');
+        }
         return $this->db_simak->get();
     }
     function get_data_local(array $data)
@@ -91,6 +94,7 @@ class M_mahasiswa extends CI_Model
             $this->db_simak->limit($this->_limit, $data['offset']);
         }
         $this->db_simak->order_by('mpt.nipd', 'ASC');
+        $this->db_simak->group_by('mpt.nipd');
         // $this->db_simak->order_by($this->_table . '.id_pd', 'DESC');
         return $this->db_simak->get();
     }

@@ -185,6 +185,10 @@ class Mahasiswa extends CI_Controller
 
 
         $dataProdi = $this->prodi->get_data(['id' => $res_mhs_pt['id_sms']])->row_array();
+        // echo '<pre>';
+        // var_dump($res_mhs_pt);
+        // echo '</pre>';
+        // die;
 
 
 
@@ -567,12 +571,13 @@ class Mahasiswa extends CI_Controller
             'table' => 'mahasiswa_pt_pmb',
             // 'table' => 'pmb_mahasiswa_pt',
             // 'where' => 'SUBSTRING(nipd,1,2)="22" AND SUBSTRING(nipd,3,3)="113"'
-            'where' => 'SUBSTRING(nipd,1,2)="23"'
+            'where' => 'SUBSTRING(nipd,1,2)="24"'
         ];
         $dataMhs = $this->mahasiswa->get_data($param_pmb)->result_array();
         // dump($dataMhs);
         // die;
         foreach ($dataMhs as $i => $mpt) {
+            $dataMhs[$i]['id_jenjang_pendidikan_ayah_update'] = null;
             $param_pmb2 = [
                 'table' => 'mahasiswa_pmb',
                 // 'table' => 'pmb_mahasiswa',
@@ -594,6 +599,40 @@ class Mahasiswa extends CI_Controller
             ];
             $res = $this->mahasiswa->get_data($param)->row_array();
             unset($mhs['nipd']);
+
+            // perbaikan id jenjang didik
+            // $jen_didik_ayah = $mhs['id_jenjang_pendidikan_ayah'];
+            // $param_jnj_didik_ayah = [
+            //     'table' => 'wastu_jenjang_pendidikan',
+            //     'where' => ['id' => $mhs['id_jenjang_pendidikan_ayah']]
+            // ];
+            // $data_jnj_didik_ayah = $this->mahasiswa->get_data($param_jnj_didik_ayah)->row_array();
+            // $param_master_jnj_didik_ayah = [
+            //     'table' => 'masterdata_jenjang_pendidikan',
+            //     'where_like' => [
+            //         'title' => 'nama_jenjang_didik',
+            //         'query' => $data_jnj_didik_ayah['jenjang']
+            //     ]
+            // ];
+            // $data_perbaikan_jnj_didik_ayah = $this->mahasiswa->get_data($param_master_jnj_didik_ayah)->row_array();
+
+
+            // $param_jnj_didik_ibu = [
+            //     'table' => 'wastu_jenjang_pendidikan',
+            //     'where' => ['id' => $mhs['id_jenjang_pendidikan_ibu']]
+            // ];
+            // $data_jnj_didik_ibu = $this->mahasiswa->get_data($param_jnj_didik_ibu)->row_array();
+            // $param_jnj_didik_wali = [
+            //     'table' => 'wastu_jenjang_pendidikan',
+            //     'where' => ['id' => $mhs['id_jenjang_pendidikan_wali']]
+            // ];
+            // $data_jnj_didik_wali = $this->mahasiswa->get_data($param_jnj_didik_wali)->row_array();
+            // $jen_didik_ibu = $mhs['id_jenjang_pendidikan_ibu'];
+            // $jen_didik_wali = $mhs['id_jenjang_pendidikan_wali'];
+
+            $data_asal[$i]['id_jenjang_pendidikan_ayah_update'] = $data_perbaikan_jnj_didik_ayah;
+            // $mhs['id_jenjang_pendidikan_ibu_update'] = ;
+            // $mhs['id_jenjang_pendidikan_wali_update'] = ;
             $id_update = $res['id_pd'];
             $update_param = [
                 'table' => 'mahasiswa',
@@ -602,14 +641,15 @@ class Mahasiswa extends CI_Controller
                 ],
                 'data' => $mhs
             ];
-            $updated = $this->mahasiswa->update_data($update_param);
+            // $updated = $this->mahasiswa->update_data($update_param);
+            $updated = true;
             if ($updated) {
                 $data_tujuan[$i] = $updated . 'SUCCESS UPDATE';
             } else {
                 $data_tujuan[$i] = 'ERROR!';
             }
         }
-        dump($data_tujuan);
+        dump($data_asal);
         die;
     }
     public function perbaikan_status()
@@ -630,6 +670,7 @@ class Mahasiswa extends CI_Controller
                 ]
             ]
         ];
+
         $resMhs = $this->mahasiswa->get_list_data($condition)->result_array();
         $this->__token__ = get_token($Conf); // Get Token Feeder from config account
         foreach ($resMhs as $i => $val) {
@@ -676,6 +717,7 @@ class Mahasiswa extends CI_Controller
     public function get_list_data()
     {
         if ($this->input->is_ajax_request()) {
+            $tahun_angkatan = '2024';
             $data_post = $this->input->post();
             $post_limit = $this->input->post('limit');
             $post_offset = $this->input->post('offset');
@@ -775,15 +817,15 @@ class Mahasiswa extends CI_Controller
                 if ($dataAgama != null) {
                     $resMhs[$i]['nama_agama'] = $dataAgama['nama_agama'];
                 }
-                if (strlen($val['nipd']) >= 9) {
-                    $resMhs[$i]['angkatan'] = '20' . substr($val['nipd'], 0, 2);
+                if (isset($val['nipd']) && strlen($val['nipd']) >= 9) {
+                    $resMhs[$i]['angkatan'] = isset($val['nipd']) ? '20' . substr($val['nipd'], 0, 2) : '';
                 } else {
-                    $resMhs[$i]['angkatan'] = '200' . substr($val['nipd'], 0, 1);
+                    $resMhs[$i]['angkatan'] = isset($val['nipd']) ? '200' . substr($val['nipd'], 0, 1) : '';
                 }
 
-                if ($resMhs[$i]['angkatan'] == '2023') {
+                if ($resMhs[$i]['angkatan'] == $tahun_angkatan) {
                     // $where
-                    $cek_krs = $this->mahasiswa->get_krs(['nipd' => $val['nipd'], 'id_tahun_ajaran' => '20231'])->row_array();
+                    $cek_krs = $this->mahasiswa->get_krs(['nipd' => $val['nipd'], 'id_tahun_ajaran' => $tahun_angkatan . '1'])->row_array();
                     if ($cek_krs === null) {
                         $resMhs[$i]['aktif_krs'] = 0;
                     }
