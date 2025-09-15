@@ -492,8 +492,8 @@ class Mahasiswa extends CI_Controller
             $dataMhs[$i]['nipd'] = $mpt['nipd'];
         }
         $data_asal = $dataMhs;
-        // dump($data_asal);
-        // die;
+        dump($data_asal);
+        die;
         $data = [];
         $resUpdate = [];
         foreach ($data_asal as $i => $mhs) {

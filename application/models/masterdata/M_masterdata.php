@@ -123,6 +123,30 @@ class M_Masterdata extends CI_Model
     //     $this->db->order_by('id_jenis_tinggal', 'ASC');
     //     return $this->db->get();
     // }
+
+    public function getWilayahNew($search)
+    {
+        $this->db->select('id_wilayah, nama_wilayah, 
+                    (SELECT nama_wilayah FROM masterdata_wilayah w2 
+                    WHERE LEFT(w2.id_wilayah,4)=LEFT(masterdata_wilayah.id_wilayah,4) 
+                    AND (w2.nama_wilayah LIKE "Kab%" OR w2.nama_wilayah LIKE "Kot%") 
+                    LIMIT 1) AS kabupaten,
+                    (SELECT nama_wilayah FROM masterdata_wilayah w3 
+                    WHERE LEFT(w3.id_wilayah,2)=LEFT(masterdata_wilayah.id_wilayah,2) 
+                    AND w3.nama_wilayah LIKE "Prov%" 
+                    LIMIT 1) AS provinsi');
+        $this->db->from('masterdata_wilayah');
+        $this->db->where('id_negara', 'ID');
+        if (!empty($search)) {
+            $this->db->like('nama_wilayah', $search);
+        }
+        return $this->db->limit(50)->get();
+    }
+
+    public function getWilayahDetail($id)
+    {
+        return $this->db->get_where('masterdata_wilayah', ['id_wilayah' => $id]);
+    }
     public function getDataWilayahV3($data = null)
     {
         $this->db->select('*');

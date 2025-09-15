@@ -426,12 +426,17 @@
                             <label class="control-label" for="data_mhs_kode_pos">Kode Pos</label>
                             <input type="text" id="data_mhs_kode_pos" name="data_mhs_kode_pos" class="form-control ui-wizard-content" value="<?= $detail_mhs['alamat']['kode_pos']; ?>" readonly>
                         </div>
-                        <div class="col-md-6">
+                        <!-- <div class="col-md-6">
                             <label class="control-label" for="data_mhs_kecamatan">Kecamatan <span style="color: red;">*</span></label>
                             <select class="form-control form-control-sm" id="data_mhs_kecamatan" name="data_mhs_kecamatan" disabled>
                             </select>
-                            <!-- <input type="text" id="data_mhs_kecamatan" name="data_mhs_kecamatan" class="form-control ui-wizard-content" value="<?= $detail_mhs['alamat']['kecamatan']; ?>" readonly> -->
+                        </div> -->
+                        <div class="col-md-6">
+                            <label class="control-label" for="data_mhs_kecamatan">Kecamatan<span style="color: red;">*</span></label>
+                            <select class="form-control form-control-sm" id="wilayahv2" name="data_mhs_kecamatan" disabled>
+                            </select>
                         </div>
+                        
                         <div class="col-md-6">
                             <label class="control-label" for="data_mhs_terima_kps">Penerima KPS <span style="color: red;">*</span></label>
                             <select class="form-control form-control-sm" id="data_mhs_terima_kps" name="data_mhs_terima_kps" disabled>
@@ -565,6 +570,35 @@
             </div>
         </div>
     </div>
+    <!-- Load jQuery & Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+    <script>
+    $(document).ready(function() {
+
+        $('#wilayahv2').select2({
+            placeholder: "Cari wilayah...",
+            ajax: {
+                url: '<?= base_url() ?>masterdata/wilayah/getWilayah', // endpoint API kamu
+                dataType: 'json',
+                delay: 150,
+                data: function (params) {
+                    return { search: params.term }; // kirim keyword ke server
+                },
+                processResults: function (res) {
+                    return {
+                        results: $.map(res.data, function (item) {
+                            return { id: item.id_wilayah, text: item.nama_wilayah }
+                        })
+                    };
+                }
+            }
+        });
+    });
+    </script>
+
 
     <script src="<?= base_url(); ?>assets/templates/proui/js/tokenChecker.js"></script>
     <script>
@@ -598,6 +632,19 @@
             var id_transportasi = "<?= $detail_mhs['alamat']['alat_transportasi']; ?>";
             var id_kebutuhan_khusus_mhs = "<?= $detail_mhs['data']['kebutuhan_khusus']; ?>";
             var id_will = "<?= $detail_mhs['alamat']['kecamatan']; ?>";
+
+            
+            if (id_will) {
+                $.ajax({
+                    url: '<?= base_url() ?>masterdata/wilayah/wilayah_detail?id=' + id_will,
+                    dataType: 'json'
+                }).then(function(res) {
+                    let data = res.data;
+                    // Tambah option secara manual
+                    var option = new Option(data.label, data.id_wilayah, true, true);
+                    $('#wilayahv2').append(option).trigger('change');
+                });
+            }
 
             // jk
             html_jk = ``;
@@ -694,37 +741,70 @@
                     $("#data_mhs_negara").append(html);
                 }
             });
-            $.ajax({
-                url: '<?= base_url() ?>masterdata/wilayah/get_data',
-                type: 'POST',
-                data: {
-                    id_negara: id_negara
-                },
-                dataType: 'json',
-                success: function(response) {
-                    // console.log(response.data);
-                    $("#data_mhs_kecamatan").empty();
-                    html = ``;
-                    let kab = ``;
-                    let prov = ``;
-                    $.each(response.data, function(i, item) {
-                        let id_kab = item.id_wilayah.substring(0, 4);
-                        let id_prov = item.id_wilayah.substring(0, 2);
-                        if (id_kab === item.id_wilayah.substring(0, 4) && item.nama_wilayah.substring(0, 3) === 'Kab') {
-                            kab = item.nama_wilayah;
-                        }
-                        if (id_prov === item.id_wilayah.substring(0, 2) && item.nama_wilayah.substring(0, 4) === 'Prov') {
-                            prov = item.nama_wilayah;
-                        }
-                        if (item.id_wilayah === id_will) {
-                            html += `<option value="${item.id_wilayah}" selected>${item.nama_wilayah} - ${kab} - ${prov}</option>`;
-                        } else {
-                            html += `<option value="${item.id_wilayah}">${item.nama_wilayah} - ${kab} - ${prov}</option>`;
-                        }
-                    });
-                    $("#data_mhs_kecamatan").append(html);
-                }
-            });
+            // $.ajax({
+            //     url: '<?= base_url() ?>masterdata/wilayah/get_data',
+            //     type: 'POST',
+            //     data: {
+            //         id_negara: id_negara
+            //     },
+            //     dataType: 'json',
+            //     success: function(response) {
+            //         console.log(response.data);
+            //         // let data_will_mhs = `<?= $detail_mhs['alamat']['kecamatan']; ?>`;
+            //         console.log(id_will);
+            //         $("#data_mhs_kecamatan").empty();
+            //         html = ``;
+            //         let kab = ``;
+            //         let prov = ``;
+            //         let maxShow = 20; // hanya tampilkan 100 data pertama
+            //         $.each(response.data.slice(0, maxShow), function(i, item) {
+            //         // $.each(response.data, function(i, item) {
+            //             let id_kab = item.id_wilayah.substring(0, 4);
+            //             let id_prov = item.id_wilayah.substring(0, 2);
+            //             if (id_kab === item.id_wilayah.substring(0, 4) && (item.nama_wilayah.substring(0, 3) === 'Kab' || item.nama_wilayah.substring(0, 3) === 'Kot')) {
+            //                 kab = item.nama_wilayah;
+            //             }
+            //             if (id_prov === item.id_wilayah.substring(0, 2) && item.nama_wilayah.substring(0, 4) === 'Prov') {
+            //                 prov = item.nama_wilayah;
+            //             }
+            //             if (item.id_wilayah === id_will) {
+            //                 html += `<option value="${item.id_wilayah}" selected>${item.nama_wilayah} - ${kab} - ${prov}</option>`;
+            //             } else {
+            //                 html += `<option value="${item.id_wilayah}">${item.nama_wilayah} - ${kab} - ${prov}</option>`;
+            //             }
+            //         });
+            //         $("#data_mhs_kecamatan").append(html);
+            //     }
+            // });
+
+            // $('#data_mhs_kecamatan').select2({
+            //     placeholder: "Pilih Kecamatan",
+            //     ajax: {
+            //         url: '<?= base_url() ?>masterdata/wilayah/getWilayah',
+            //         type: 'POST',
+            //         dataType: 'json',
+            //         delay: 250,
+            //         data: function(params) {
+            //             return {
+            //                 id_negara: id_negara,
+            //                 search: params.term // kirim keyword ke backend
+            //             };
+            //         },
+            //         processResults: function (data) {
+            //             return {
+            //                 results: $.map(data.data, function (item) {
+            //                     return {
+            //                         id: item.id_wilayah,
+            //                         text: item.nama_wilayah
+            //                     };
+            //                 })
+            //             };
+            //         }
+            //     }
+            // });
+
+
+
             $.ajax({
                 url: '<?= base_url() ?>masterdata/jenis_tinggal/get_data',
                 type: 'POST',
