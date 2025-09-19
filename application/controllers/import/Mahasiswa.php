@@ -721,13 +721,13 @@ class Mahasiswa extends CI_Controller
             $Conf = $this->feeder->get_data()->row(); // Get data config
             $this->__token__ = get_token($Conf); // Get Token Feeder from config account
 
-            $tahun_angkatan = '2024';
+            $tahun_angkatan = date('Y');
             $data_post = $this->input->post();
             $post_limit = $this->input->post('limit');
             $post_offset = $this->input->post('offset');
             $filter = $this->input->post('filter');
             $url_pagination = $this->input->post('url_pagination');
-            // dump(substr($filter['angkatan'], 2, 2));
+            // dump($tahun_angkatan);
             // die;
 
             $filter_angkatan = null;
@@ -855,8 +855,9 @@ class Mahasiswa extends CI_Controller
 
                 if ($resMhs[$i]['angkatan'] == $tahun_angkatan) {
                     // $where
-                    $cek_krs = $this->mahasiswa->get_krs(['nipd' => $val['nipd'], 'id_tahun_ajaran' => $tahun_angkatan . '1'])->row_array();
-                    if ($cek_krs === null) {
+                    $cek_krs = $this->mahasiswa->get_krs(['nipd' => $val['nipd'], 'id_tahun_ajaran' => $tahun_angkatan . '1'])->result_array();
+                    $resMhs[$i]['data_krs'] = $cek_krs;
+                    if (count($cek_krs ) <= 0) {
                         $resMhs[$i]['aktif_krs'] = 0;
                     }
                 }

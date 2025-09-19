@@ -541,7 +541,11 @@
                         html += `<td class=""><a class="btn_detail_mhs" rel="noopener noreferrer" href="javascript:void(0)" id_pd="${mhs.id_pd}" data-toggle="tooltip" title="Lihat Detail"><strong>${mhs.nm_pd}</strong</a></td>`;
                         html += `<td class="">${mhs.jk}</td>`;
                         html += `<td class="">${mhs.nama_agama}</td>`;
-                        html += `<td class="">-</td>`;
+                        let totalSks = 0;
+                        $.each(mhs.data_krs, function(kk, krs){
+                            totalSks += krs.sks;
+                        });
+                        html += `<td class="">${totalSks}</td>`;
                         html += `<td class="">${mhs.tgl_lahir}</td>`;
                         html += `<td class="">${mhs.prodi}</td>`;
                         html += `<td class="">${mhs.status}</td>`;

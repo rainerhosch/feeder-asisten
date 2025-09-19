@@ -140,7 +140,7 @@ class M_Masterdata extends CI_Model
         if (!empty($search)) {
             $this->db->like('nama_wilayah', $search);
         }
-        return $this->db->limit(50)->get();
+        return $this->db->limit(5)->get();
     }
 
     public function getWilayahDetail($id)
