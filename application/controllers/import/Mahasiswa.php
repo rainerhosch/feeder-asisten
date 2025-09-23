@@ -753,7 +753,7 @@ class Mahasiswa extends CI_Controller
                     $where = [
                         'SUBSTR(mpt.nipd,1,2) =' => $sub_angkatan,
                         'mpt.id_sms =' => $filter_prodi,
-                        'kn.id_tahun_ajaran' => $filter_krs
+                        // 'kn.id_tahun_ajaran' => $filter_krs
                     ];
                 } else if ($filter_angkatan != '0' && $filter_prodi == null) {
                     $sub_angkatan = substr($filter_angkatan, 2, 2);
@@ -804,11 +804,11 @@ class Mahasiswa extends CI_Controller
                         'on' => 'mahasiswa.id_pd = mpt.id_pd',
                         'join_type' => 'left'
                     ],
-                    1 => [
-                        'table' => 'krs_new kn',
-                        'on' => 'kn.nipd = mpt.nipd',
-                        'join_type' => 'left'
-                    ]
+                    // 1 => [
+                    //     'table' => 'krs_new kn',
+                    //     'on' => 'kn.nipd = mpt.nipd',
+                    //     'join_type' => 'left'
+                    // ]
                 ]
             ];
             $resMhs = $this->mahasiswa->get_list_data($condition)->result_array();
@@ -909,11 +909,11 @@ class Mahasiswa extends CI_Controller
                             'on' => 'mahasiswa.id_pd = mpt.id_pd',
                             'join_type' => ''
                         ],
-                        1 => [
-                            'table' => 'krs_new kn',
-                            'on' => 'kn.nipd = mpt.nipd',
-                            'join_type' => 'left'
-                        ]
+                        // 1 => [
+                        //     'table' => 'krs_new kn',
+                        //     'on' => 'kn.nipd = mpt.nipd',
+                        //     'join_type' => 'left'
+                        // ]
                     ]
                 ];
             } else {
