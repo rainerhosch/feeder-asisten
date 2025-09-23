@@ -22,6 +22,7 @@ class Mahasiswa extends CI_Controller
         $this->load->model('import/M_mahasiswa', 'mahasiswa');
         $this->load->model('import/M_prodi', 'prodi');
         $this->load->model('masterdata/M_masterdata', 'masterdata');
+        date_default_timezone_set('Asia/Jakarta');
     }
     public function index()
     {
@@ -51,7 +52,6 @@ class Mahasiswa extends CI_Controller
         print_r($data_filtered);
         echo '</pre>';
         die;
-
     }
 
     public function detail()
@@ -717,7 +717,7 @@ class Mahasiswa extends CI_Controller
     public function get_list_data()
     {
         if ($this->input->is_ajax_request()) {
-            
+
             $Conf = $this->feeder->get_data()->row(); // Get data config
             $this->__token__ = get_token($Conf); // Get Token Feeder from config account
 
@@ -732,6 +732,7 @@ class Mahasiswa extends CI_Controller
 
             $filter_angkatan = null;
             $filter_prodi = null;
+            $filter_krs  = $filter['status_krs'];
             $filter_search = null;
             $cek_len = 0;
             if (isset($filter['angkatan'])) {
@@ -747,11 +748,12 @@ class Mahasiswa extends CI_Controller
             // dump(strlen($filter_search));
             // die;
             if ($cek_len == 0) {
-                if ($filter_angkatan != '0' && $filter_prodi != null) {
+                if ($filter_angkatan != '0' && $filter_prodi != null && $filter_krs != 'x') {
                     $sub_angkatan = substr($filter_angkatan, 2, 2);
                     $where = [
                         'SUBSTR(mpt.nipd,1,2) =' => $sub_angkatan,
                         'mpt.id_sms =' => $filter_prodi,
+                        'kn.id_tahun_ajaran' => $filter_krs
                     ];
                 } else if ($filter_angkatan != '0' && $filter_prodi == null) {
                     $sub_angkatan = substr($filter_angkatan, 2, 2);
@@ -801,6 +803,11 @@ class Mahasiswa extends CI_Controller
                         'table' => 'mahasiswa_pt mpt',
                         'on' => 'mahasiswa.id_pd = mpt.id_pd',
                         'join_type' => 'left'
+                    ],
+                    1 => [
+                        'table' => 'krs_new kn',
+                        'on' => 'kn.nipd = mpt.nipd',
+                        'join_type' => 'left'
                     ]
                 ]
             ];
@@ -810,7 +817,7 @@ class Mahasiswa extends CI_Controller
             // die;
             foreach ($resMhs as $i => $val) {
                 $sync_status = 0;
-                
+
                 $data_param = [
                     'token' => $this->__token__,
                     "act" => 'GetListRiwayatPendidikanMahasiswa',
@@ -857,7 +864,7 @@ class Mahasiswa extends CI_Controller
                     // $where
                     $cek_krs = $this->mahasiswa->get_krs(['nipd' => $val['nipd'], 'id_tahun_ajaran' => $tahun_angkatan . '1'])->result_array();
                     $resMhs[$i]['data_krs'] = $cek_krs;
-                    if (count($cek_krs ) <= 0) {
+                    if (count($cek_krs) <= 0) {
                         $resMhs[$i]['aktif_krs'] = 0;
                     }
                 }
@@ -901,6 +908,11 @@ class Mahasiswa extends CI_Controller
                             'table' => 'mahasiswa_pt mpt',
                             'on' => 'mahasiswa.id_pd = mpt.id_pd',
                             'join_type' => ''
+                        ],
+                        1 => [
+                            'table' => 'krs_new kn',
+                            'on' => 'kn.nipd = mpt.nipd',
+                            'join_type' => 'left'
                         ]
                     ]
                 ];

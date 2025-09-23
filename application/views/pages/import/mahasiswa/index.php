@@ -17,6 +17,7 @@
 
     .form-control#thn_angkatan,
     #filter_angkatan,
+    #filter_krs,
     #filter_prodi {
         font-size: 11px;
         padding: 6px 8px;
@@ -106,28 +107,26 @@
                 </div>
             </a>
         </div>
-        <!-- <div class="col-md-4 col-lg-4">
+        <div class="col-md-4 col-lg-4">
             <a href="javascript:void(0)" class="widget widget-hover-effect1">
                 <div class="widget-simple">
                     <div class="row">
                         <div class="col-sm-12 text-center" style="margin-bottom: 3px;">
-                            <p><strong>Sinkron Data</strong> <small> Simak to Feeder</small></p>
+                            <p><strong>Filter KRS</strong></p>
                         </div>
                     </div>
                     <div class="row">
-                        <form id="form_sync">
+                        <form id="form_filter_krs">
                             <div class="col-xs-12 col-sm-12 col-md-12">
                                 <table class="table">
                                     <tr>
                                         <td>
                                             <div class="form-group">
-                                                <select class="form-control form-control-sm" id="thn_angkatan" name="thn_angkatan">
+                                                <select class="form-control form-control-sm text-center" id="filter_krs" name="filter_krs">
+                                                    <option value="x">-- Pilih KRS --</option>
+                                                    <option value="1">Mengisi KRS</option>
+                                                    <option value="0">Tidak Mengisi KRS</option>
                                                 </select>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="form-group">
-                                                <button type="button" class="btn btn-primary btn-sm btn_sync_all" disabled><i class="hi hi-refresh"></i></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -137,7 +136,7 @@
                     </div>
                 </div>
             </a>
-        </div> -->
+        </div>
         <!-- <div class="col-sm-6 col-lg-3">
             <a href="javascript:void(0)" class="widget widget-hover-effect1">
                 <div class="widget-simple">
@@ -308,6 +307,18 @@
                     deleteAllCookies('filterAngkatan')
                 }
             });
+            $('#filter_krs').on('change', function () {
+                var cookieValue = $(this).val();
+                // console.log(cookieValue)
+                if (cookieValue != '') {
+                    set_krs = cookieValue;
+                    filter_krs = filter_krs ? filter_krs : document.body.className;
+                    document.body.className = filter_krs + ' ' + set_krs;
+                    setCookie('filterKRS', cookieValue, 1);
+                } else {
+                    deleteAllCookies('filterKRS')
+                }
+            });
 
             function setCookie(cookieName, cookieValue, nDays) {
                 var today = new Date();
@@ -329,6 +340,7 @@
                     location.reload();
                 }
             }
+            var filterKRSSelected = Cookies.get("filterKRS");
             var filterProdiSelected = Cookies.get("filterProdi");
             var filterAngkatanSelected = Cookies.get("filterAngkatan");
             if (filterAngkatanSelected != 0) {
@@ -336,8 +348,26 @@
             } else {
                 $('.btn_sync_all').prop('disabled', true);
             }
+
+            if(filterKRSSelected != 'x'){
+                let krsOnCookie = Cookies.get("filterKRS");
+                let html = `<option class="text-center" value="x">--Pilih Filter KRS--</option>`;
+                let dataKrs = [
+                    { id: 1, desc: "Mengisi KRS" },
+                    { id: 0, desc: "Tidak Mengisi KRS" }
+                ];
+                $.each(dataKrs, function (i, value) {
+                    if (value.id === parseInt(krsOnCookie)) {
+                        html += `<option class="text-center" value="${value.id}" selected>${value.desc}</option>`;
+                    } else {
+                        html += `<option class="text-center" value="${value.id}">${value.desc}</option>`;
+                    }
+                });
+                $("#filter_krs").html(html);
+            }
             // console.log(filterProdiSelected)
             // console.log(filterAngkatanSelected)
+            console.log(filterKRSSelected)
             $.ajax({
                 url: '<?= base_url() ?>masterdata/tahun_ajaran/get_data_tahun',
                 type: 'GET',
@@ -509,6 +539,7 @@
                         filter: {
                             'prodi': Cookies.get("filterProdi"),
                             'angkatan': Cookies.get("filterAngkatan"),
+                            'status_krs': Cookies.get("filterKRS"),
                         },
                         url_pagination: 'DataMhs'
                     },
@@ -552,7 +583,13 @@
                         html += `<td class=""><a class="btn_detail_mhs" rel="noopener noreferrer" href="javascript:void(0)" id_pd="${mhs.id_pd}" data-toggle="tooltip" title="Lihat Detail"><strong>${mhs.nm_pd}</strong</a></td>`;
                         html += `<td class="">${mhs.jk}</td>`;
                         html += `<td class="">${mhs.nama_agama}</td>`;
-                        html += `<td class="">-</td>`;
+                        let totalSks = 0;
+                        if (Array.isArray(mhs.data_krs)) {
+                            $.each(mhs.data_krs, function(kk, krs){
+                                totalSks += parseInt(krs.sks) || 0;
+                            });
+                        }
+                        html += `<td class="">${totalSks}</td>`;
                         html += `<td class="">${mhs.tgl_lahir}</td>`;
                         html += `<td class="">${mhs.prodi}</td>`;
                         html += `<td class="">${mhs.status}</td>`;
