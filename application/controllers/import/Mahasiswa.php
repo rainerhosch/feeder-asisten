@@ -721,7 +721,7 @@ class Mahasiswa extends CI_Controller
             $Conf = $this->feeder->get_data()->row(); // Get data config
             $this->__token__ = get_token($Conf); // Get Token Feeder from config account
 
-            $tahun_angkatan = date('Y');
+            $d = date('Y');
             $data_post = $this->input->post();
             $post_limit = $this->input->post('limit');
             $post_offset = $this->input->post('offset');
@@ -732,11 +732,14 @@ class Mahasiswa extends CI_Controller
 
             $filter_angkatan = null;
             $filter_prodi = null;
-            $filter_krs  = $filter['status_krs'];
+            $filter_krs  = null;
             $filter_search = null;
             $cek_len = 0;
             if (isset($filter['angkatan'])) {
                 $filter_angkatan = $filter['angkatan'];
+            }
+            if (isset($filter['status_krs'])) {
+                $filter_krs = $filter['status_krs'];
             }
             if (isset($filter['prodi'])) {
                 $filter_prodi = $filter['prodi'];
@@ -745,33 +748,56 @@ class Mahasiswa extends CI_Controller
                 $filter_search = $filter['search'];
                 $cek_len = strlen($filter_search);
             }
-            // dump(strlen($filter_search));
+            $cek_krs = $this->mahasiswa->get_krs(['id_tahun_ajaran' => date('Y') . '1'])->result_array();
+            $nim_krs = [];
+            foreach($cek_krs as $mhs){
+                $nim_krs[] = $mhs['nipd'];
+            }
+            $nim_krs = implode(',', $nim_krs);
+            // var_dump(($nim_krs));
             // die;
             if ($cek_len == 0) {
-                if ($filter_angkatan != '0' && $filter_prodi != null && $filter_krs != 'x') {
+                if ($filter_angkatan != '0' && $filter_prodi != null) {
                     $sub_angkatan = substr($filter_angkatan, 2, 2);
+                    // if($filter_krs != '1'){
+                    //     $where_in = [
+                    //         'data' => $nim_krs,
+                    //         'condition' => 'in'
+                    //     ];
+                    // }else{
+                    //     $where_in = [
+                    //         'data' => $nim_krs,
+                    //         'condition' => 'not'
+                    //     ];
+                    // }
                     $where = [
                         'SUBSTR(mpt.nipd,1,2) =' => $sub_angkatan,
                         'mpt.id_sms =' => $filter_prodi,
+                        // 'mpt.nipd IN' => $nim_krs,
                         // 'kn.id_tahun_ajaran' => $filter_krs
                     ];
                 } else if ($filter_angkatan != '0' && $filter_prodi == null) {
                     $sub_angkatan = substr($filter_angkatan, 2, 2);
+                    // $where_in = null;
                     $where = [
                         'SUBSTR(mpt.nipd,1,2) =' => $sub_angkatan,
                     ];
                 } else if ($filter_angkatan == '0' && $filter_prodi != null) {
+                    // $where_in = null;
                     $where = [
                         'mpt.id_sms =' => $filter_prodi,
                     ];
                 } else {
                     $where = null;
+                    // $where_in = null;
                 }
             } else {
                 if (is_numeric($filter_search)) {
                     $where = "nipd LIKE '%" . $filter_search . "%'";
+                    // $where_in = null;
                 } else {
                     $where = "mahasiswa.nm_pd LIKE '%" . $filter_search . "%'";
+                    // $where_in = null;
                 }
             }
             // dump($where);
@@ -798,6 +824,7 @@ class Mahasiswa extends CI_Controller
                 'limit' => $limit,
                 'offset' => $offset,
                 'where' => $where,
+                // 'where_in' => $where_in,
                 'join_tbl' => [
                     0 => [
                         'table' => 'mahasiswa_pt mpt',
@@ -860,9 +887,9 @@ class Mahasiswa extends CI_Controller
                     $resMhs[$i]['angkatan'] = isset($val['nipd']) ? '200' . substr($val['nipd'], 0, 1) : '';
                 }
 
-                if ($resMhs[$i]['angkatan'] == $tahun_angkatan) {
+                if ($resMhs[$i]['angkatan'] == $d) {
                     // $where
-                    $cek_krs = $this->mahasiswa->get_krs(['nipd' => $val['nipd'], 'id_tahun_ajaran' => $tahun_angkatan . '1'])->result_array();
+                    $cek_krs = $this->mahasiswa->get_krs(['nipd' => $val['nipd'], 'id_tahun_ajaran' => $d . '1'])->result_array();
                     $resMhs[$i]['data_krs'] = $cek_krs;
                     if (count($cek_krs) <= 0) {
                         $resMhs[$i]['aktif_krs'] = 0;

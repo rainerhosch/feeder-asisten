@@ -86,6 +86,14 @@ class M_mahasiswa extends CI_Model
         if (isset($data['where'])) {
             $this->db_simak->where($data['where']);
         }
+        // if (isset($data['where_in']) && is_array($data['where_in'])) {
+        //     if($data['where_in']['condition'] == 'in'){
+        //         $this->db_simak->where_in('mpt.nipd', $data['where_in']['data']);
+        //     }else{
+        //         $this->db_simak->where_not_in('mpt.nipd', $data['where_in']['data']);
+        //     }
+        // }
+
         if (isset($data['limit']) && isset($data['offset'])) {
             $this->db_simak->limit($data['limit'], $data['offset']);
         } elseif (isset($data['limit'])) {
