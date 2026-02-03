@@ -3,8 +3,7 @@
 application/cache/*
 !application/cache/index.html
 
-application/config/database.php
-
+.env
 application/logs/*
 !application/logs/index.html
 
