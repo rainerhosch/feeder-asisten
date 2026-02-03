@@ -9,7 +9,7 @@ application/logs/*
 !application/logs/index.html
 
 !application/*/.htaccess
-
+db_back
 composer.lock
 tests/mocks/database/ci_test.sqlite
 
