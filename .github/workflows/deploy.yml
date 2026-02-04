@@ -2,9 +2,8 @@ name: Auto Pull Deployment Feeder Asistance
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - master
 
 jobs:
   deploy:
