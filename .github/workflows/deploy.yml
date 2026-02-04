@@ -2,8 +2,9 @@ name: Auto Pull Deployment Feeder Asistance
 
 on:
   push:
-    branches:
-      - master
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
 
 jobs:
   deploy:
@@ -30,5 +31,5 @@ jobs:
           script: |
             cd /www/wwwroot/feeder-asisten
             echo "Masuk ke direktori..."
-            git pull origin master
+            git pull origin main
             echo "Update code berhasil."
