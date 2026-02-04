@@ -36,6 +36,7 @@
  * @filesource
  */
 
+
 /*
  *---------------------------------------------------------------
  * APPLICATION ENVIRONMENT
@@ -53,7 +54,92 @@
  *
  * NOTE: If you change these, also change the error_reporting() code below
  */
-	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
+	// define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
+	// define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'production');
+
+/*
+ *---------------------------------------------------------------
+ * LOAD ENVIRONMENT VARIABLES
+ *---------------------------------------------------------------
+ *
+ * Load environment variables from .env file if it exists.
+ * Simple implementation without external dependencies.
+ * Works even when putenv() is disabled on shared hosting.
+ */
+$dotenv_path = __DIR__ . '/.env';
+$_dotenv_values = array();
+if (file_exists($dotenv_path)) {
+	$lines = file($dotenv_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+	foreach ($lines as $line) {
+		$line = trim($line);
+		// Skip comments and empty lines
+		if (empty($line) || strpos($line, '#') === 0) {
+			continue;
+		}
+		// Parse key=value
+		if (strpos($line, '=') !== false) {
+			list($key, $value) = explode('=', $line, 2);
+			$key = trim($key);
+			$value = trim($value);
+			// Remove quotes if present
+			if (preg_match('/^["\'](.*)["\']\s*$/', $value, $matches)) {
+				$value = $matches[1];
+			}
+			// Store in our custom array and superglobals
+			$_dotenv_values[$key] = $value;
+			$_ENV[$key] = $value;
+			$_SERVER[$key] = $value;
+			// Only use putenv if available
+			if (function_exists('putenv')) {
+				@putenv("$key=$value");
+			}
+		}
+	}
+}
+
+// Helper function to get env value (works even when getenv is disabled)
+if (!function_exists('env')) {
+	function env($key, $default = null)
+	{
+		global $_dotenv_values;
+		if (isset($_dotenv_values[$key])) {
+			return $_dotenv_values[$key];
+		}
+		if (isset($_ENV[$key])) {
+			return $_ENV[$key];
+		}
+		if (isset($_SERVER[$key])) {
+			return $_SERVER[$key];
+		}
+		if (function_exists('getenv')) {
+			$value = @getenv($key);
+			if ($value !== false) {
+				return $value;
+			}
+		}
+		return $default;
+	}
+}
+
+/*
+ *---------------------------------------------------------------
+ * APPLICATION ENVIRONMENT
+ *---------------------------------------------------------------
+ *
+ * You can load different configurations depending on your
+ * current environment. Setting the environment also influences
+ * things like logging and error reporting.
+ *
+ * This can be set to anything, but default usage is:
+ *
+ *     development
+ *     testing
+ *     production
+ *
+ * NOTE: If you change these, also change the error_reporting() code below
+ */
+$ci_env = getenv('CI_ENV') ?: (isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
+define('ENVIRONMENT', $ci_env);
 
 /*
  *---------------------------------------------------------------
