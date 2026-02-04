@@ -16,7 +16,5 @@
     Header always set Access-Control-Allow-Headers "Content-Type, Authorization"
 
     # Fix mixed content for scripts/styles/images
-    <If "%{HTTP:X-Forwarded-Proto} = 'http'">
-        Header always set Content-Security-Policy "upgrade-insecure-requests"
-    </If>
+    Header always set Content-Security-Policy "upgrade-insecure-requests"
 </IfModule>
