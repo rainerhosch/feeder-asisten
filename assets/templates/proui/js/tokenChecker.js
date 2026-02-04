@@ -24,6 +24,7 @@ $(document).ready(function() {
         } else {
             clearInterval(countDown);
             countDiv.innerHTML = 'Token Expired';
+            location.reload();
         }
     }
 })

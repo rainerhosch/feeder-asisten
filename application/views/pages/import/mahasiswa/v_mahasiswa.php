@@ -250,8 +250,10 @@
                 } else {
                     clearInterval(countDown);
                     countDiv.innerHTML = 'Token Expired';
+                    location.reload();
                 }
             }
+            
             $('#filter_prodi').on('change', function() {
                 var cookieValue = $(this).val();
                 if (cookieValue != '') {
