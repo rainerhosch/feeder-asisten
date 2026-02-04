@@ -35,6 +35,17 @@ $config['base_url'] = '';
 | variable so that it is blank.
 |
 */
+// Deteksi Protokol yang lebih cerdas (Support Reverse Proxy & Cloudflare)
+$protocol = 'http';
+if (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) == 'on') {
+    $protocol = 'https';
+} elseif (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https') {
+    $protocol = 'https';
+} elseif (isset($_SERVER['HTTP_FRONT_END_HTTPS']) && strtolower($_SERVER['HTTP_FRONT_END_HTTPS']) == 'on') {
+    $protocol = 'https';
+}
+
+
 // Dinamis base_url
 $config['base_url'] = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") ? "https" : "http");
 $config['base_url'] .= "://" . $_SERVER['HTTP_HOST'];
