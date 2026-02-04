@@ -98,7 +98,7 @@ $autoload['helper'] = [
     'url',
     'setup',
     'auth',
-    'safeCrypto',
+    'safe_crypto',
     'feeder'
 ];
 

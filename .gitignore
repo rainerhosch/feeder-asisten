@@ -2,7 +2,6 @@
 
 application/cache/*
 !application/cache/index.html
-.github
 .env
 application/logs/*
 !application/logs/index.html

@@ -1,0 +1,35 @@
+name: Auto Pull Deployment Feeder Asistance
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Hapus baris environment jika Anda menggunakan Repository Secrets
+    # environment: Production 
+
+    steps:
+      - name: Check Env Availability
+        run: |
+          if [ -z "${{ secrets.SSH_HOST }}" ]; then
+            echo "Error: SSH_HOST secret is empty or not found!"
+            exit 1
+          fi
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script_stop: true # Stop script jika ada error
+          script: |
+            cd /www/wwwroot/feeder-asisten
+            echo "Masuk ke direktori..."
+            git pull origin master
+            echo "Update code berhasil."
