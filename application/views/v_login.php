@@ -72,6 +72,9 @@
 				$.ajax({
 					url: "<?= base_url('auth/process_login') ?>",
 					type: "POST",
+					headers: {
+						'X-Requested-With': 'XMLHttpRequest' // Tambahkan ini secara manual
+					},
 					data: {
 						username: username,
 						password: password
