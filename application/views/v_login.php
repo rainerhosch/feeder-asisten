@@ -70,7 +70,7 @@
 				var username = $('#username').val();
 				var password = $('#conf_password').val();
 				$.ajax({
-					url: "<?= base_url('Auth') ?>/process_login",
+					url: "<?= base_url('auth/process_login') ?>",
 					type: "POST",
 					data: {
 						username: username,
