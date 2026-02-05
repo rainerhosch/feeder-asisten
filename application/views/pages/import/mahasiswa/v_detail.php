@@ -583,6 +583,9 @@
             ajax: {
                 url: '<?= base_url() ?>masterdata/wilayah/getWilayah', // endpoint API kamu
                 dataType: 'json',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 delay: 150,
                 data: function (params) {
                     return { search: params.term }; // kirim keyword ke server
@@ -637,7 +640,10 @@
             if (id_will) {
                 $.ajax({
                     url: '<?= base_url() ?>masterdata/wilayah/wilayah_detail?id=' + id_will,
-                    dataType: 'json'
+                    dataType: 'json',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
                 }).then(function(res) {
                     let data = res.data;
                     // Tambah option secara manual
@@ -674,6 +680,9 @@
                     // $.ajax({
                     //     url: '<?= base_url() ?>masterdata/kebutuhan_khusus/get_data',
                     //     type: 'POST',
+                    //     headers: {
+                    //         'X-Requested-With': 'XMLHttpRequest'
+                    //     },
                     //     dataType: 'json',
                     //     success: function(response) {
                     //         console.log(response);
@@ -708,6 +717,9 @@
             $.ajax({
                 url: '<?= base_url() ?>masterdata/agama/get_data',
                 type: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 dataType: 'json',
                 success: function(response) {
                     // console.log(response);
@@ -726,6 +738,9 @@
             $.ajax({
                 url: '<?= base_url() ?>masterdata/negara/get_data',
                 type: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 dataType: 'json',
                 success: function(response) {
                     // console.log(response);
@@ -744,6 +759,9 @@
             // $.ajax({
             //     url: '<?= base_url() ?>masterdata/wilayah/get_data',
             //     type: 'POST',
+            //     headers: {
+            //         'X-Requested-With': 'XMLHttpRequest'
+            //     },
             //     data: {
             //         id_negara: id_negara
             //     },
@@ -782,6 +800,9 @@
             //     ajax: {
             //         url: '<?= base_url() ?>masterdata/wilayah/getWilayah',
             //         type: 'POST',
+            //         headers: {
+            //             'X-Requested-With': 'XMLHttpRequest'
+            //         },
             //         dataType: 'json',
             //         delay: 250,
             //         data: function(params) {
@@ -808,6 +829,9 @@
             $.ajax({
                 url: '<?= base_url() ?>masterdata/jenis_tinggal/get_data',
                 type: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 dataType: 'json',
                 success: function(response) {
                     // console.log(response);
@@ -826,6 +850,9 @@
             $.ajax({
                 url: '<?= base_url() ?>masterdata/alat_transportasi/get_data',
                 type: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 dataType: 'json',
                 success: function(response) {
                     // console.log(response);
@@ -849,6 +876,9 @@
             $.ajax({
                 url: '<?= base_url() ?>masterdata/jenjang_pendidikan/get_data',
                 type: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 dataType: 'json',
                 success: function(response) {
                     let html = ``;
@@ -884,6 +914,9 @@
             $.ajax({
                 url: '<?= base_url() ?>masterdata/pekerjaan/get_data',
                 type: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 dataType: 'json',
                 success: function(response) {
                     let html = ``;
@@ -918,6 +951,9 @@
             $.ajax({
                 url: '<?= base_url() ?>masterdata/penghasilan/get_data',
                 type: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 dataType: 'json',
                 success: function(response) {
                     let html = ``;
@@ -981,6 +1017,9 @@
                 $.ajax({
                     url: "<?= base_url() . $dir . '/' . $page ?>/update_data",
                     type: "POST",
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
                     data: data,
                     dataType: "JSON",
                     success: function(response) {

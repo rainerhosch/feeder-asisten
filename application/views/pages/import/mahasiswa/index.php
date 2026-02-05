@@ -240,6 +240,9 @@
             $.ajax({
                 url: '<?= base_url() . $dir ?>/prodi/get_data',
                 type: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 serverSide: true,
                 dataType: 'json',
                 success: function (response) {
@@ -260,6 +263,9 @@
             $.ajax({
                 url: '<?= base_url() ?>masterdata/tahun_ajaran/get_data_tahun',
                 type: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 serverSide: true,
                 dataType: 'json',
                 success: function (response) {
@@ -371,6 +377,9 @@
             $.ajax({
                 url: '<?= base_url() ?>masterdata/tahun_ajaran/get_data_tahun',
                 type: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 serverSide: true,
                 dataType: 'json',
                 success: function (response) {
@@ -437,6 +446,9 @@
                 $.ajax({
                     url: '<?= base_url() . $dir . '/' . $page ?>/sync_batch',
                     type: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
                     data: {
                         angkatan: angkatan,
                         prodi: prodi
@@ -502,6 +514,9 @@
                 $.ajax({
                     url: '<?= base_url() . $dir . '/' . $page ?>/get_list_data',
                     type: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
                     data: {
                         limit: limit,
                         filter: {
@@ -533,6 +548,9 @@
                 $.ajax({
                     url: '<?= base_url() . $dir . '/' . $page ?>/get_list_data/' + offset,
                     type: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
                     data: {
                         offset: offset,
                         limit: limit,
@@ -647,6 +665,9 @@
                     let id_pd = $(this).data('id_pd');
                     $.ajax({
                         type: "POST",
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
                         url: `<?= base_url() . $dir . '/' . $page ?>/sync_histori_pendidikan`,
                         data: {
                             id_pd: id_pd,
@@ -703,6 +724,9 @@
                     let query = 'Get List Mahasiswa'
                     $.ajax({
                         type: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
                         url: '<?= base_url() . $dir . '/' . $page ?>/sync_data',
                         data: {
                             id_pd: id_pd,

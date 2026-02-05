@@ -30,6 +30,9 @@
             $.ajax({
                 url: "<?= base_url() . $dir . '/' . $page ?>/get_data",
                 type: "POST",
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 dataType: "JSON",
                 success: function(response) {
                     // console.log(response);

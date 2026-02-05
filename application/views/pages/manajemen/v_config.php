@@ -86,6 +86,9 @@
                 $.ajax({
                     url: "<?= base_url() . $dir . '/' . $page ?>/insert_data",
                     type: "POST",
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
                     data: {
                         host: host,
                         port: port,
@@ -119,6 +122,9 @@
             $.ajax({
                 url: "<?= base_url() . $dir . '/' . $page ?>/get_data",
                 type: "POST",
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 dataType: "JSON",
                 success: function(response) {
                     // console.log(response);
@@ -165,6 +171,9 @@
                                 $.ajax({
                                     url: "<?= base_url() . $dir . '/' . $page ?>/delete_data",
                                     type: "POST",
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    },
                                     data: {
                                         id: id,
                                     },

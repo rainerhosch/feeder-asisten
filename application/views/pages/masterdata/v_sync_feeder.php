@@ -54,6 +54,9 @@
             ];
             $.ajax({
                 type: "POST",
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' // Tambahkan ini secara manual
+                },
                 url: "<?= base_url() . $dir . '/' . $page ?>/cek_data",
                 data: {
                     table: datamaster
@@ -93,6 +96,9 @@
                             console.log(id)
                             $.ajax({
                                 type: "POST",
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest' // Tambahkan ini secara manual
+                                },
                                 url: "<?= base_url() . $dir . '/' . $page ?>/syncData",
                                 data: {
                                     id: id,
