@@ -72,7 +72,13 @@ class Auth extends CI_Controller
             }
             echo json_encode($response);
         } else {
-            show_404();
+            // show_404();
+            echo json_encode([
+                'status'    => false,
+                'code'      => 403,
+                'message'   => 'Invalid request.',
+                'data'      => 0
+            ]);
         }
     }
 
