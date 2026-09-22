@@ -487,18 +487,20 @@
             });
             loadPagination(limit);
 
+            let searchTimeout;
             $(".datatable_filter").keyup(function (e) {
                 e.preventDefault();
                 let keyword = $(this).val();
                 let offset = $(this).attr('data-ci-pagination-page');
-                if (keyword != '') {
-                    loadFilter(keyword);
-                } else {
-                    loadPagination(limit, offset);
-                    // console.log(Cookies.get("filterProdi"))
-                    // console.log(Cookies.get("filterAngkatan"))
-                }
-                // console.log(keyword)
+                
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    if (keyword != '') {
+                        loadFilter(keyword);
+                    } else {
+                        loadPagination(limit, offset);
+                    }
+                }, 500); // Wait 500ms after user stops typing before searching
             });
             $('#pagination').on('click', 'a', function (e) {
                 e.preventDefault();
@@ -630,6 +632,8 @@
                             if (mhs.id_feeder != '') {
                                 if (mhs.sync_history === 1) {
                                     html += `<span class="badge badge-pill badge-info"><i class="fa fa-check"></i></span>`;
+                                } else if (mhs.sync_history === 2) {
+                                    html += `<span class="badge badge-pill badge-secondary check_sync_history" data-nipd="${mhs.nipd}" data-id_pd="${mhs.id_pd}" data-nm_pd="${mhs.nm_pd}"><i class="fa fa-spinner fa-spin"></i> Mengecek...</span>`;
                                 } else {
                                     html += `<button href="javascript:void(0)" class="btn btn-xs btn-warning btnSyncHistori" data-nipd="${mhs.nipd}" data-id_pd="${mhs.id_pd}" data-nm_pd="${mhs.nm_pd}" data-toggle="tooltip" title="Insert NIM to Feeder"><i class="hi hi-refresh"></i></button>`;
                                 }
@@ -660,59 +664,89 @@
 
                 $('#data_mahasiswa_tbody').html(html);
                 // new DataTable('#menu-datatable');
-
-                $('.btnSyncHistori').on('click', function () {
-                    let id_pd = $(this).data('id_pd');
+                
+                // Initialize async checks for history status
+                $('.check_sync_history').each(function() {
+                    let el = $(this);
+                    let nipd = el.data('nipd');
+                    let id_pd = el.data('id_pd');
+                    let nm_pd = el.data('nm_pd');
                     $.ajax({
-                        type: "POST",
+                        url: '<?= base_url() . $dir . '/' . $page ?>/check_sync_history',
+                        type: 'POST',
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         },
-                        url: `<?= base_url() . $dir . '/' . $page ?>/sync_histori_pendidikan`,
-                        data: {
-                            id_pd: id_pd,
-                        },
-                        dataType: "json",
-                        beforeSend: function () {
-                            Swal.fire({
-                                // title: 'Uploading...',
-                                html: 'Please wait...',
-                                allowEscapeKey: false,
-                                allowOutsideClick: false,
-                                didOpen: () => {
-                                    Swal.showLoading()
-                                }
-                            });
-                        },
-                        success: function (response) {
-                            console.log(response)
-                            if (response.status === true) {
-                                title = `Success`;
-                                icon = `success`;
-                            } else {
-                                title = `Error!`;
-                                icon = `error`;
-                            }
-                            Swal.fire({
-                                html: response.msg,
-                                icon: icon,
-                                showConfirmButton: true,
-                            }).then(() => {
-                                // location.reload();
+                        data: { nipd: nipd },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.status === 1) {
                                 $(`#history_status_${id_pd}`).html(`<span class="badge badge-pill badge-info"><i class="fa fa-check"></i></span>`);
-                            });
-                        },
-                        error: function () {
-                            swal.fire({
-                                icon: 'error',
-                                html: '<h5>Koneksi Server Terputus! Seperti aku dengan dia.</h5>'
-                            }).then(() => {
-                                location.reload();
-                            });
+                            } else {
+                                $(`#history_status_${id_pd}`).html(`<button href="javascript:void(0)" class="btn btn-xs btn-warning btnSyncHistori" data-nipd="${nipd}" data-id_pd="${id_pd}" data-nm_pd="${nm_pd}" data-toggle="tooltip" title="Insert NIM to Feeder"><i class="hi hi-refresh"></i></button>`);
+                                bindSyncHistori($(`#history_status_${id_pd}`).find('.btnSyncHistori'));
+                            }
                         }
                     });
-
                 });
+
+                function bindSyncHistori(element) {
+                    element.on('click', function () {
+                        let id_pd = $(this).data('id_pd');
+                        $.ajax({
+                            type: "POST",
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            url: `<?= base_url() . $dir . '/' . $page ?>/sync_histori_pendidikan`,
+                            data: {
+                                id_pd: id_pd,
+                            },
+                            dataType: "json",
+                            beforeSend: function () {
+                                Swal.fire({
+                                    // title: 'Uploading...',
+                                    html: 'Please wait...',
+                                    allowEscapeKey: false,
+                                    allowOutsideClick: false,
+                                    didOpen: () => {
+                                        Swal.showLoading()
+                                    }
+                                });
+                            },
+                            success: function (response) {
+                                console.log(response)
+                                if (response.status === true) {
+                                    title = `Success`;
+                                    icon = `success`;
+                                } else {
+                                    title = `Error!`;
+                                    icon = `error`;
+                                }
+                                Swal.fire({
+                                    html: response.msg,
+                                    icon: icon,
+                                    showConfirmButton: true,
+                                }).then(() => {
+                                    // location.reload();
+                                    $(`#history_status_${id_pd}`).html(`<span class="badge badge-pill badge-info"><i class="fa fa-check"></i></span>`);
+                                });
+                            },
+                            error: function () {
+                                swal.fire({
+                                    icon: 'error',
+                                    html: '<h5>Koneksi Server Terputus! Seperti aku dengan dia.</h5>'
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            }
+                        });
+
+                    });
+                }
+                
+                // Bind to any already rendered buttons (e.g., if sync_history wasn't 2 for some reason)
+                bindSyncHistori($('.btnSyncHistori'));
 
 
 

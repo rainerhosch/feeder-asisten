@@ -302,6 +302,13 @@ class Mahasiswa extends CI_Controller
             $cek_konversi = substr($res_mhs_pt['nipd'], 5, 1);
             $dataPendaftaran = $this->masterdata->getData('masterdata_jenis_pendaftaran', 'nama_jenis_daftar', ['id_jenis_daftar' => $cek_konversi])->row_array();
 
+            // Set default id_jenis_daftar if not found by cek_konversi
+            $id_jenis_daftar = 1; // Default: Peserta didik baru
+            if (isset($dataPendaftaran['id_jenis_daftar'])) {
+                $id_jenis_daftar = $dataPendaftaran['id_jenis_daftar'];
+            } elseif (isset($res_mhs_pt['id_jns_daftar']) && $res_mhs_pt['id_jns_daftar'] != '') {
+                $id_jenis_daftar = $res_mhs_pt['id_jns_daftar'];
+            }
 
 
             // $dataPembiayaan = $this->masterdata->getData('masterdata_pembiayaan', 'nama_pembiayaan', ['id_pembiayaan' =>  $cek_konversi])->row_array();
@@ -339,7 +346,7 @@ class Mahasiswa extends CI_Controller
 
             $data['record'] = [
                 'nim' => $res_mhs_pt['nipd'],
-                'id_jenis_daftar' => $dataPendaftaran['id_jenis_daftar'],
+                'id_jenis_daftar' => $id_jenis_daftar,
                 'id_jalur_daftar' => 12,
                 'id_periode_masuk' => $periode_masuk,
                 'tanggal_daftar' => $res_mhs_pt['tgl_masuk_sp'],
@@ -732,7 +739,7 @@ class Mahasiswa extends CI_Controller
 
             $filter_angkatan = null;
             $filter_prodi = null;
-            $filter_krs  = null;
+            $filter_krs = null;
             $filter_search = null;
             $cek_len = 0;
             if (isset($filter['angkatan'])) {
@@ -750,7 +757,7 @@ class Mahasiswa extends CI_Controller
             }
             $cek_krs = $this->mahasiswa->get_krs(['id_tahun_ajaran' => date('Y') . '1'])->result_array();
             $nim_krs = [];
-            foreach($cek_krs as $mhs){
+            foreach ($cek_krs as $mhs) {
                 $nim_krs[] = $mhs['nipd'];
             }
             $nim_krs = implode(',', $nim_krs);
@@ -843,29 +850,9 @@ class Mahasiswa extends CI_Controller
             // dump($resMhs);
             // die;
             foreach ($resMhs as $i => $val) {
-                $sync_status = 0;
+                // Default sync_history to 2 (loading) to be checked via ajax in view to prevent slow loading
+                $resMhs[$i]['sync_history'] = 2;
 
-                $data_param = [
-                    'token' => $this->__token__,
-                    "act" => 'GetListRiwayatPendidikanMahasiswa',
-                    "filter" => "nim = '" . $val['nipd'] . "'",
-                    "limit" => "",
-                    "offset" => ""
-                ];
-                $response = service_request($data_param, $Conf);
-                // dump($response);
-                // die;
-                $jsonResponse = json_encode($response);
-                $data = json_decode($jsonResponse, true);
-                if ($response->error_code == 0) {
-                    if (count($data['data']) > 0) {
-                        $sync_status = 1;
-                    }
-                } else {
-                    $sync_status = 99;
-                    $msg_sync = 'Koneksi terputus.';
-                }
-                $resMhs[$i]['sync_history'] = $sync_status;
 
 
 
@@ -1011,6 +998,41 @@ class Mahasiswa extends CI_Controller
             echo json_encode($res);
         } else {
             handler_404();
+        }
+    }
+
+    // new function
+    public function check_sync_history()
+    {
+        if ($this->input->is_ajax_request()) {
+            $nipd = $this->input->post('nipd');
+            $Conf = $this->feeder->get_data()->row();
+            $this->__token__ = get_token($Conf);
+
+            $sync_status = 0;
+            $msg_sync = '';
+
+            $data_param = [
+                'token' => $this->__token__,
+                "act" => 'GetListRiwayatPendidikanMahasiswa',
+                "filter" => "nim = '" . $nipd . "'",
+                "limit" => "",
+                "offset" => ""
+            ];
+            $response = service_request($data_param, $Conf);
+            $jsonResponse = json_encode($response);
+            $data = json_decode($jsonResponse, true);
+
+            if (isset($response->error_code) && $response->error_code == 0) {
+                if (isset($data['data']) && count($data['data']) > 0) {
+                    $sync_status = 1;
+                }
+            } else {
+                $sync_status = 99;
+                $msg_sync = 'Koneksi terputus.';
+            }
+
+            echo json_encode(['status' => $sync_status, 'msg' => $msg_sync]);
         }
     }
 
