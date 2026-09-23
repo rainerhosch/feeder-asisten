@@ -1084,11 +1084,12 @@ class Mahasiswa extends CI_Controller
             $data_post['token'] = $this->__token__; // Get Token Feeder from config account
 
             $responseArray = $this->cek_data_from_feeder($data_post, $Conf);
-            // dump($responseArray);
-            // die;
             $data_feeder = $responseArray['data'];
             $error_code = $responseArray['error_code'];
             $response_status = $responseArray['error_desc'];
+
+            // dump($responseArray);
+            // die;
 
             if ($error_code === 0) {
                 // insert data baru ke feeder
@@ -1177,13 +1178,57 @@ class Mahasiswa extends CI_Controller
                 // var_dump($responseArray);
                 // die;
                 if ($error_code != 0) {
-                    $status = false;
-                    $res_code = $error_code;
-                    $msg = $response_status;
-                    $data = [
-                        'id_pd' => $id_pd,
-                        'nipd' => $nipd
-                    ];
+                    if (strpos(strtolower($response_status), 'nik sudah digunakan') !== false || (strpos(strtolower($response_status), 'nik') !== false && strpos(strtolower($response_status), 'sudah ada') !== false)) {
+                        $fetch_param = [
+                            'token' => $this->__token__,
+                            "act" => 'GetBiodataMahasiswa',
+                            "filter" => "nik = '" . $data_post['record']['nik'] . "'",
+                            "limit" => "1",
+                            "offset" => "0"
+                        ];
+                        $response_fetch = service_request($fetch_param, $Conf);
+                        $json_fetch = json_encode($response_fetch);
+                        $arr_fetch = json_decode($json_fetch, true);
+
+                        if ($arr_fetch['error_code'] == 0 && count($arr_fetch['data']) > 0) {
+                            $id_feeder = $arr_fetch['data'][0]['id_mahasiswa'];
+
+                            $update_param = [
+                                'table' => 'mahasiswa_pt',
+                                'where' => ['id_pd' => $id_pd],
+                                'data' => ['id_feeder' => $id_feeder]
+                            ];
+                            $updated = $this->$model->update_data($update_param);
+                            if ($updated) {
+                                $status = true;
+                                $res_code = 0;
+                                $msg = 'Data sudah ada di Feeder. Sinkronisasi id_feeder (NIK: ' . $data_post['record']['nik'] . ') berhasil ditautkan!';
+                                $data = [
+                                    'id_pd' => $id_pd,
+                                    'nipd' => $nipd,
+                                    'id_feeder' => $id_feeder
+                                ];
+                            } else {
+                                $status = false;
+                                $res_code = 500;
+                                $msg = 'Gagal menyimpan id_feeder ke database lokal.';
+                                $data = ['id_pd' => $id_pd, 'nipd' => $nipd];
+                            }
+                        } else {
+                            $status = false;
+                            $res_code = $error_code;
+                            $msg = $response_status . " (Gagal tarik ID via NIK)";
+                            $data = ['id_pd' => $id_pd, 'nipd' => $nipd];
+                        }
+                    } else {
+                        $status = false;
+                        $res_code = $error_code;
+                        $msg = $response_status;
+                        $data = [
+                            'id_pd' => $id_pd,
+                            'nipd' => $nipd
+                        ];
+                    }
                 } else {
                     // query insert id feeder ke simak
                     $update_param = [
@@ -1462,9 +1507,39 @@ class Mahasiswa extends CI_Controller
                     // $dataF = [];
 
                     if ($error_code != 0) {
-                        $msg[] = $response_status;
-                        $status = false;
-                        $dataF[] = 'Error ' . $error_code;
+                        if (strpos(strtolower($response_status), 'nik sudah digunakan') !== false || (strpos(strtolower($response_status), 'nik') !== false && strpos(strtolower($response_status), 'sudah ada') !== false)) {
+                            $fetch_param = [
+                                'token' => $this->__token__,
+                                "act" => 'GetBiodataMahasiswa',
+                                "filter" => "nik = '" . $data_post['record']['nik'] . "'",
+                                "limit" => "1",
+                                "offset" => "0"
+                            ];
+                            $response_fetch = service_request($fetch_param, $Conf);
+                            $json_fetch = json_encode($response_fetch);
+                            $arr_fetch = json_decode($json_fetch, true);
+
+                            if ($arr_fetch['error_code'] == 0 && count($arr_fetch['data']) > 0) {
+                                $id_feeder = $arr_fetch['data'][0]['id_mahasiswa'];
+                                $update_param = [
+                                    'table' => 'mahasiswa_pt',
+                                    'where' => ['id_pd' => $ds['id_pd']],
+                                    'data' => ['id_feeder' => $id_feeder]
+                                ];
+                                $this->mahasiswa->update_data($update_param);
+                                $status = true;
+                                $msg[] = "Sinkronisasi id_feeder (NIK: " . $data_post['record']['nik'] . ") berhasil ditautkan!";
+                                $dataF[] = 'Tersimpan';
+                            } else {
+                                $msg[] = $response_status . " (Gagal tarik ID via NIK)";
+                                $status = false;
+                                $dataF[] = 'Error ' . $error_code;
+                            }
+                        } else {
+                            $msg[] = $response_status;
+                            $status = false;
+                            $dataF[] = 'Error ' . $error_code;
+                        }
                     } else {
                         // query insert ke simak
                         $update_param = [
