@@ -169,4 +169,87 @@ class M_mahasiswa extends CI_Model
             return FALSE;
         }
     }
-}
+
+    /**
+     * Get overall sync statistics (total, synced, unsynced)
+     * @param array|null $filters ['prodi' => id_sms, 'angkatan' => tahun]
+     * @return array
+     */
+    public function get_sync_stats($filters = null)
+    {
+        $this->db_simak->select('
+            COUNT(DISTINCT mpt.id_pd) as total,
+            SUM(CASE WHEN mpt.id_feeder IS NOT NULL AND mpt.id_feeder != "" THEN 1 ELSE 0 END) as synced,
+            SUM(CASE WHEN mpt.id_feeder IS NULL OR mpt.id_feeder = "" THEN 1 ELSE 0 END) as unsynced
+        ');
+        $this->db_simak->from('mahasiswa_pt mpt');
+        $this->db_simak->join('mahasiswa m', 'm.id_pd = mpt.id_pd', 'left');
+
+        if (!empty($filters['prodi'])) {
+            $this->db_simak->where('mpt.id_sms', $filters['prodi']);
+        }
+        if (!empty($filters['angkatan']) && $filters['angkatan'] != '0') {
+            $sub_angkatan = substr($filters['angkatan'], 2, 2);
+            $this->db_simak->where('SUBSTR(mpt.nipd,1,2) =', $sub_angkatan);
+        }
+
+        return $this->db_simak->get()->row_array();
+    }
+
+    /**
+     * Get sync statistics grouped by Prodi (Program Studi)
+     * @param array|null $filters ['angkatan' => tahun]
+     * @return array
+     */
+    public function get_stats_by_prodi($filters = null)
+    {
+        $this->db_simak->select('
+            mpt.id_sms,
+            COUNT(DISTINCT mpt.id_pd) as total,
+            SUM(CASE WHEN mpt.id_feeder IS NOT NULL AND mpt.id_feeder != "" THEN 1 ELSE 0 END) as synced,
+            SUM(CASE WHEN mpt.id_feeder IS NULL OR mpt.id_feeder = "" THEN 1 ELSE 0 END) as unsynced
+        ');
+        $this->db_simak->from('mahasiswa_pt mpt');
+        $this->db_simak->join('mahasiswa m', 'm.id_pd = mpt.id_pd', 'left');
+
+        if (!empty($filters['prodi'])) {
+            $this->db_simak->where('mpt.id_sms', $filters['prodi']);
+        }
+        if (!empty($filters['angkatan']) && $filters['angkatan'] != '0') {
+            $sub_angkatan = substr($filters['angkatan'], 2, 2);
+            $this->db_simak->where('SUBSTR(mpt.nipd,1,2) =', $sub_angkatan);
+        }
+
+        $this->db_simak->group_by('mpt.id_sms');
+        return $this->db_simak->get()->result_array();
+    }
+
+    /**
+     * Get sync statistics grouped by Angkatan (from nipd prefix)
+     * @param array|null $filters ['prodi' => id_sms]
+     * @return array
+     */
+    public function get_stats_by_angkatan($filters = null)
+    {
+        $this->db_simak->select('
+            CONCAT("20", SUBSTR(mpt.nipd,1,2)) as angkatan,
+            COUNT(DISTINCT mpt.id_pd) as total,
+            SUM(CASE WHEN mpt.id_feeder IS NOT NULL AND mpt.id_feeder != "" THEN 1 ELSE 0 END) as synced,
+            SUM(CASE WHEN mpt.id_feeder IS NULL OR mpt.id_feeder = "" THEN 1 ELSE 0 END) as unsynced
+        ');
+        $this->db_simak->from('mahasiswa_pt mpt');
+        $this->db_simak->join('mahasiswa m', 'm.id_pd = mpt.id_pd', 'left');
+
+        if (!empty($filters['prodi'])) {
+            $this->db_simak->where('mpt.id_sms', $filters['prodi']);
+        }
+        if (!empty($filters['angkatan']) && $filters['angkatan'] != '0') {
+            $sub_angkatan = substr($filters['angkatan'], 2, 2);
+            $this->db_simak->where('SUBSTR(mpt.nipd,1,2) =', $sub_angkatan);
+        }
+
+        $this->db_simak->group_by('SUBSTR(mpt.nipd,1,2)');
+        $this->db_simak->order_by('angkatan', 'DESC');
+        return $this->db_simak->get()->result_array();
+    }
+}
