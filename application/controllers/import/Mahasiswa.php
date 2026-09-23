@@ -1103,20 +1103,14 @@ class Mahasiswa extends CI_Controller
                 // die;
 
                 $ds = $data_mhs;
-                if ($ds['id_kebutuhan_khusus_mahasiswa'] === null) {
-                    $ds['id_kebutuhan_khusus_mahasiswa'] = '0';
-                }
-                if ($ds['id_kebutuhan_khusus_ayah'] === null) {
-                    $ds['id_kebutuhan_khusus_ayah'] = '0';
-                }
-                if ($ds['id_kebutuhan_khusus_ibu'] === null) {
-                    $ds['id_kebutuhan_khusus_ibu'] = '0';
-                }
-                if ($ds['id_penghasilan_ayah'] === null) {
-                    $ds['id_penghasilan_ayah'] = '0';
-                }
-                if ($ds['id_penghasilan_ibu'] === null) {
-                    $ds['id_penghasilan_ibu'] = '0';
+                $fields_to_zero = [
+                    'id_kebutuhan_khusus_mahasiswa', 'id_kebutuhan_khusus_ayah', 'id_kebutuhan_khusus_ibu',
+                    'id_penghasilan_ayah', 'id_penghasilan_ibu', 'id_penghasilan_wali'
+                ];
+                foreach ($fields_to_zero as $f) {
+                    if (!isset($ds[$f]) || $ds[$f] === null || trim((string)$ds[$f]) === '') {
+                        $ds[$f] = '0';
+                    }
                 }
 
                 $data_post['record'] = [
@@ -1430,16 +1424,15 @@ class Mahasiswa extends CI_Controller
                     // insert ke 
                     $data_post['action'] = 'InsertBiodataMahasiswa';
 
-                    if ($ds['id_kebutuhan_khusus_mahasiswa'] === null) {
-                        $ds['id_kebutuhan_khusus_mahasiswa'] = '0';
+                    $fields_to_zero = [
+                        'id_kebutuhan_khusus_mahasiswa', 'id_kebutuhan_khusus_ayah', 'id_kebutuhan_khusus_ibu',
+                        'id_penghasilan_ayah', 'id_penghasilan_ibu', 'id_penghasilan_wali'
+                    ];
+                    foreach ($fields_to_zero as $f) {
+                        if (!isset($ds[$f]) || $ds[$f] === null || trim((string)$ds[$f]) === '') {
+                            $ds[$f] = '0';
+                        }
                     }
-                    if ($ds['id_kebutuhan_khusus_ayah'] === null) {
-                        $ds['id_kebutuhan_khusus_ayah'] = '0';
-                    }
-                    if ($ds['id_kebutuhan_khusus_ibu'] === null) {
-                        $ds['id_kebutuhan_khusus_ibu'] = '0';
-                    }
-
 
                     $data_post['record'] = [
                         "nama_mahasiswa" => $ds['nm_pd'],
