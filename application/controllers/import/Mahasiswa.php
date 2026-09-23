@@ -851,6 +851,7 @@ class Mahasiswa extends CI_Controller
             // die;
             foreach ($resMhs as $i => $val) {
                 // Default sync_history to 2 (loading) to be checked via ajax in view to prevent slow loading
+                // Default sync_history to 0 so the sync button is always rendered for manual QA
                 $resMhs[$i]['sync_history'] = 2;
 
 
