@@ -30,7 +30,17 @@ class Mfa_update extends CI_Controller
     public function do_update()
     {
         if ($this->input->is_ajax_request()) {
-            $output = shell_exec('git pull 2>&1');
+            // Mengatasi error 'dubious ownership' pada git (biasanya terjadi di XAMPP / environment dengan user web server yang berbeda dengan user owner file)
+            $repo_dir = rtrim(str_replace('\\', '/', FCPATH), '/');
+            shell_exec('git config --global --add safe.directory ' . escapeshellarg($repo_dir) . ' 2>&1');
+            shell_exec('git config --global --add safe.directory "*" 2>&1');
+            
+            // Mencegah Git meminta input (username/password atau konfirmasi SSH) di terminal yang bisa menyebabkan proses hang
+            putenv('GIT_TERMINAL_PROMPT=0');
+            putenv('GIT_SSH_COMMAND=ssh -o StrictHostKeyChecking=no');
+            
+            // Menjalankan git pull (--no-edit mencegah Git membuka text editor jika ada merge)
+            $output = shell_exec('git pull --no-edit 2>&1');
             
             $response = [
                 'status' => true,
