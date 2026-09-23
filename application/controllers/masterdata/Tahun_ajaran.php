@@ -47,9 +47,13 @@ class Tahun_ajaran extends CI_Controller
                 'id' => 0000,
                 'tahun' => 'All'
             ];
-            foreach ($res as $i => $val) {
-                $data['angkatan'][$i + 1]['id'] = (int)$val['id_tahun_ajaran'];
-                $data['angkatan'][$i + 1]['tahun'] = $val['id_tahun_ajaran'];
+            $idx = 1;
+            foreach ($res as $val) {
+                if ((int)substr($val['id_tahun_ajaran'], 0, 4) >= 2013) {
+                    $data['angkatan'][$idx]['id'] = (int)$val['id_tahun_ajaran'];
+                    $data['angkatan'][$idx]['tahun'] = $val['id_tahun_ajaran'];
+                    $idx++;
+                }
             }
             echo json_encode($data);
         } else {

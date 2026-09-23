@@ -765,9 +765,12 @@ class Mahasiswa extends CI_Controller
             // die;
             $where = [];
             
+            // Global filter: only show angkatan >= 2013
+            $angkatan_expr = 'CAST(CASE WHEN LENGTH(mpt.nipd) <= 8 THEN CONCAT("200", SUBSTR(mpt.nipd,1,1)) ELSE CONCAT("20", SUBSTR(mpt.nipd,1,2)) END AS UNSIGNED)';
+            $where[$angkatan_expr . ' >='] = 2013;
+
             if ($filter_angkatan != null && $filter_angkatan != '0') {
-                $sub_angkatan = substr($filter_angkatan, 2, 2);
-                $where['SUBSTR(mpt.nipd,1,2) ='] = $sub_angkatan;
+                $where[$angkatan_expr . ' ='] = $filter_angkatan;
             }
             
             if ($filter_prodi != null && $filter_prodi != '0') {
@@ -892,35 +895,17 @@ class Mahasiswa extends CI_Controller
 
             }
             $data['mhs'] = $resMhs;
-            if (!is_null($filter)) {
-                $fil = [
-                    'table' => 'mahasiswa',
-                    'where' => $where,
-                    'join_tbl' => [
-                        0 => [
-                            'table' => 'mahasiswa_pt mpt',
-                            'on' => 'mahasiswa.id_pd = mpt.id_pd',
-                            'join_type' => ''
-                        ],
-                        // 1 => [
-                        //     'table' => 'krs_new kn',
-                        //     'on' => 'kn.nipd = mpt.nipd',
-                        //     'join_type' => 'left'
-                        // ]
-                    ]
-                ];
-            } else {
-                $fil = [
-                    'table' => 'mahasiswa',
-                    'join_tbl' => [
-                        0 => [
-                            'table' => 'mahasiswa_pt mpt',
-                            'on' => 'mahasiswa.id_pd = mpt.id_pd',
-                            'join_type' => ''
-                        ]
-                    ]
-                ];
-            }
+            $fil = [
+                'table' => 'mahasiswa',
+                'where' => $where,
+                'join_tbl' => [
+                    0 => [
+                        'table' => 'mahasiswa_pt mpt',
+                        'on' => 'mahasiswa.id_pd = mpt.id_pd',
+                        'join_type' => ''
+                    ],
+                ]
+            ];
             $data['total_data'] = $this->mahasiswa->getCount($fil);
             // $data['total_data'] = $this->mahasiswa->getData($condition)->num_rows();
             $total_page = ($data['total_data'] / $limit);
