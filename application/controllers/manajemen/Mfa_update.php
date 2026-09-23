@@ -14,6 +14,7 @@ class Mfa_update extends CI_Controller
     public function __construct()
     {
         parent::__construct();
+        login_check();
     }
 
     public function index()
@@ -24,5 +25,22 @@ class Mfa_update extends CI_Controller
         $data['page'] = $this->uri->segment(2);
         $data['content'] = 'pages/' . $this->uri->segment(1) . '/v_' . $this->uri->segment(2);
         $this->load->view('template', $data);
+    }
+
+    public function do_update()
+    {
+        if ($this->input->is_ajax_request()) {
+            $output = shell_exec('git pull 2>&1');
+            
+            $response = [
+                'status' => true,
+                'message' => 'Proses update selesai.',
+                'output' => $output
+            ];
+            
+            echo json_encode($response);
+        } else {
+            show_404();
+        }
     }
 }
