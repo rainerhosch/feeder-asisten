@@ -607,25 +607,16 @@
     <script>
         $(document).ready(function() {
 
-            var url = window.location.href;
-            var segments = url.split('/');
-            var host = segments[2];
-            var app = segments[3];
-            var dir = segments[4];
-            var crtl = segments[5];
-
-            if (segments[6] != undefined) {
-                var funct = segments[6].split('?')[0];
-                var query = segments[6].split('?')[1]
-                // console.log(query)
-            }
+            var funct = "<?= $this->router->fetch_method() ?>";
+            var query = window.location.search;
+            
             $(`button#${funct}`).addClass('btn-primary');
 
-            $('.btn_nav').each(function(i, btn) {
-                $(`button#${btn.id}`).on('click', function() {
-                    window.location.href = `${location.origin}/${app}/${dir}/${crtl}/${btn.id}?${query}`;
+            $('.btn_nav').each(function (i, btn) {
+                $(`button#${btn.id}`).on('click', function () {
+                    window.location.href = `<?= base_url('import/mahasiswa/') ?>${btn.id}${query}`;
                 });
-            })
+            });
 
             var id_jk = "<?= $detail_mhs['data']['jk']; ?>";
             var id_agama = <?= $detail_mhs['data']['agama']; ?>;
