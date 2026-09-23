@@ -774,8 +774,21 @@ class Mahasiswa extends CI_Controller
                 $where[$angkatan_expr . ' ='] = $filter_angkatan;
             }
             
+            $filter_sync = null;
+            if (isset($filter['status_sync'])) {
+                $filter_sync = $filter['status_sync'];
+            }
+            
             if ($filter_prodi != null && $filter_prodi != '0') {
                 $where['mpt.id_sms ='] = $filter_prodi;
+            }
+            
+            if ($filter_sync !== null && $filter_sync !== 'all' && $filter_sync !== '') {
+                if ($filter_sync == '1') {
+                    $where['mpt.id_feeder IS NOT NULL AND mpt.id_feeder != ""'] = null;
+                } else if ($filter_sync == '0') {
+                    $where['(mpt.id_feeder IS NULL OR mpt.id_feeder = "")'] = null;
+                }
             }
             
             if ($cek_len > 0) {

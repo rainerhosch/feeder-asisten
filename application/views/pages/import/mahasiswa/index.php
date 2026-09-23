@@ -50,7 +50,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-4 col-lg-4">
+        <div class="col-md-3 col-lg-3">
             <!-- Widget -->
             <a href="javascript:void(0)" class="widget widget-hover-effect1">
                 <div class="widget-simple">
@@ -79,7 +79,7 @@
                 </div>
             </a>
         </div>
-        <div class="col-md-4 col-lg-4">
+        <div class="col-md-3 col-lg-3">
             <a href="javascript:void(0)" class="widget widget-hover-effect1">
                 <div class="widget-simple">
                     <div class="row">
@@ -107,7 +107,7 @@
                 </div>
             </a>
         </div>
-        <div class="col-md-4 col-lg-4">
+        <div class="col-md-3 col-lg-3">
             <a href="javascript:void(0)" class="widget widget-hover-effect1">
                 <div class="widget-simple">
                     <div class="row">
@@ -126,6 +126,36 @@
                                                     <option value="x">-- Pilih KRS --</option>
                                                     <option value="1">Mengisi KRS</option>
                                                     <option value="0">Tidak Mengisi KRS</option>
+                                                </select>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3 col-lg-3">
+            <a href="javascript:void(0)" class="widget widget-hover-effect1">
+                <div class="widget-simple">
+                    <div class="row">
+                        <div class="col-sm-12 text-center" style="margin-bottom: 3px;">
+                            <p><strong>Filter Sync</strong></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <form id="form_filter_sync">
+                            <div class="col-xs-12 col-sm-12 col-md-12">
+                                <table class="table">
+                                    <tr>
+                                        <td>
+                                            <div class="form-group">
+                                                <select class="form-control form-control-sm text-center" id="filter_sync" name="filter_sync">
+                                                    <option value="all">-- Semua --</option>
+                                                    <option value="1">Sudah Sync</option>
+                                                    <option value="0">Belum Sync</option>
                                                 </select>
                                             </div>
                                         </td>
@@ -325,6 +355,14 @@
                     deleteAllCookies('filterKRS')
                 }
             });
+            $('#filter_sync').on('change', function () {
+                var cookieValue = $(this).val();
+                if (cookieValue != 'all') {
+                    setCookie('filterSync', cookieValue, 1);
+                } else {
+                    deleteAllCookies('filterSync');
+                }
+            });
 
             function setCookie(cookieName, cookieValue, nDays) {
                 var today = new Date();
@@ -370,6 +408,23 @@
                     }
                 });
                 $("#filter_krs").html(html);
+            }
+            
+            var filterSyncSelected = Cookies.get("filterSync");
+            if (filterSyncSelected !== undefined && filterSyncSelected != 'all') {
+                let html = `<option class="text-center" value="all">-- Semua --</option>`;
+                let dataSync = [
+                    { id: 1, desc: "Sudah Sync" },
+                    { id: 0, desc: "Belum Sync" }
+                ];
+                $.each(dataSync, function (i, value) {
+                    if (value.id === parseInt(filterSyncSelected)) {
+                        html += `<option class="text-center" value="${value.id}" selected>${value.desc}</option>`;
+                    } else {
+                        html += `<option class="text-center" value="${value.id}">${value.desc}</option>`;
+                    }
+                });
+                $("#filter_sync").html(html);
             }
             // console.log(filterProdiSelected)
             // console.log(filterAngkatanSelected)
@@ -525,6 +580,7 @@
                             'prodi': Cookies.get("filterProdi"),
                             'angkatan': Cookies.get("filterAngkatan"),
                             'status_krs': Cookies.get("filterKRS"),
+                            'status_sync': Cookies.get("filterSync"),
                             'search': keyword
                         },
                         url_pagination: 'DataMhs'
@@ -563,6 +619,7 @@
                             'prodi': Cookies.get("filterProdi"),
                             'angkatan': Cookies.get("filterAngkatan"),
                             'status_krs': Cookies.get("filterKRS"),
+                            'status_sync': Cookies.get("filterSync"),
                         },
                         url_pagination: 'DataMhs'
                     },
