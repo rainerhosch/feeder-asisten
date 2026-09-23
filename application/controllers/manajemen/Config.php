@@ -52,6 +52,7 @@ class Config extends CI_Controller
                         $data[$i]['nm_lembaga'] = $data_pt->nama_perguruan_tinggi;
                     }
                     $data[$i]['username'] = mfaDecrypt($val['username']);
+                    $data[$i]['password'] = mfaDecrypt($val['password']);
                 }
                 if (!$data) {
                     $response = [
@@ -109,6 +110,38 @@ class Config extends CI_Controller
                     'status'    => true,
                     'code'      => 200,
                     'message'   => 'Success',
+                    'data'      => 1
+                ];
+            }
+            echo json_encode($response);
+        } else {
+            show_404();
+        }
+    }
+
+    function update_data()
+    {
+        if ($this->input->is_ajax_request()) {
+            $data_post = $this->input->post();
+            $data_update = [
+                'username'          => mfaEncrypt($data_post['username']),
+                'password'          => mfaEncrypt($data_post['password']),
+                'host'              => $data_post['host'],
+                'port'              => $data_post['port'],
+            ];
+            $update = $this->feeder->update_data($data_update, ['id' => $data_post['id']]);
+            if (!$update) {
+                $response = [
+                    'status'    => false,
+                    'code'      => 500,
+                    'message'   => 'Update gagal..',
+                    'data'      => null
+                ];
+            } else {
+                $response = [
+                    'status'    => true,
+                    'code'      => 200,
+                    'message'   => 'Data konfig berhasil diupdate',
                     'data'      => 1
                 ];
             }
