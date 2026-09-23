@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="<?= base_url(); ?>assets/templates/proui/css/themes.css">
     <script src="<?= base_url(); ?>assets/templates/proui/js/vendor/modernizr.min.js"></script>
     <!-- jQuery, Bootstrap.js, jQuery plugins and Custom JS code -->
+    <script>var BASE_URL = '<?= base_url() ?>';</script>
     <script src="<?= base_url(); ?>assets/templates/proui/js/vendor/jquery.min.js"></script>
     <script src="<?= base_url(); ?>assets/templates/proui/js/vendor/bootstrap.min.js"></script>
     <script src="<?= base_url(); ?>assets/templates/proui/js/plugins.js"></script><!-- Page content -->

@@ -29,6 +29,25 @@ class Config extends CI_Controller
         $this->load->view('template', $data);
     }
 
+    public function refresh_token()
+    {
+        if ($this->input->is_ajax_request()) {
+            $Conf = $this->feeder->get_data()->row();
+            if ($Conf) {
+                $result = check_token($Conf);
+                if ($result['status'] == 1) {
+                    echo json_encode(['status' => true, 'message' => 'Token refreshed']);
+                } else {
+                    echo json_encode(['status' => false, 'message' => 'Failed to refresh token']);
+                }
+            } else {
+                echo json_encode(['status' => false, 'message' => 'Config not found']);
+            }
+        } else {
+            show_404();
+        }
+    }
+
     function get_data()
     {
         // dump();

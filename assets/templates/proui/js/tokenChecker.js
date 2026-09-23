@@ -22,9 +22,26 @@ $(document).ready(function() {
         if (sec > 0) {
             sec = sec - 1;
         } else {
-            clearInterval(countDown);
-            countDiv.innerHTML = 'Token Expired';
-            location.reload();
+            if (countDiv) countDiv.innerHTML = 'Refreshing...';
+            $.ajax({
+                url: (typeof BASE_URL !== 'undefined' ? BASE_URL : '') + 'manajemen/Config/refresh_token',
+                type: 'POST',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status) {
+                        sec = 180;
+                    } else {
+                        clearInterval(countDown);
+                        if (countDiv) countDiv.innerHTML = 'Token Expired';
+                        location.reload();
+                    }
+                },
+                error: function() {
+                    clearInterval(countDown);
+                    if (countDiv) countDiv.innerHTML = 'Token Expired';
+                    location.reload();
+                }
+            });
         }
     }
 })
