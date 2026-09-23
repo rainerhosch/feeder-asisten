@@ -174,7 +174,11 @@
         <div class="block-title">
             <h2>Data <?= $page ?></h2>
             <div class="block-options pull-right">
-                SYNC TO FEEDER <button class="btn btn-sm btn-info btn_sync_all" disabled><i
+                SYNC HISTORI <button class="btn btn-sm btn-warning btn_sync_batch_history" disabled><i
+                        class="hi hi-refresh"></i></button>
+            </div>
+            <div class="block-options pull-right">
+                SYNC BIODATA <button class="btn btn-sm btn-info btn_sync_all" disabled><i
                         class="hi hi-refresh"></i></button>
             </div>
             <div class="block-options pull-right">
@@ -377,8 +381,10 @@
             var filterAngkatanSelected = Cookies.get("filterAngkatan");
             if (filterAngkatanSelected != 0) {
                 $('.btn_sync_all').prop('disabled', false);
+                $('.btn_sync_batch_history').prop('disabled', false);
             } else {
                 $('.btn_sync_all').prop('disabled', true);
+                $('.btn_sync_batch_history').prop('disabled', true);
             }
 
             if (filterKRSSelected != 'x') {
@@ -522,6 +528,42 @@
                 })
             });
 
+
+            $('.btn_sync_batch_history').on('click', function () {
+                let angkatan = $('#filter_angkatan').val();
+                let prodi = $('#filter_prodi').val();
+                $.ajax({
+                    url: '<?= base_url() . $dir . '/' . $page ?>/sync_batch_history',
+                    type: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    data: {
+                        angkatan: angkatan,
+                        prodi: prodi
+                    },
+                    beforeSend: function () {
+                        loader();
+                    },
+                    dataType: 'json',
+                    success: function (response) {
+                        console.log(response)
+                        let icon = '';
+                        if (response.status != true) {
+                            icon = 'error';
+                        } else {
+                            icon = 'success';
+                        }
+                        Swal.fire({
+                            icon: icon,
+                            title: `<i>${response.res_code || (response.status ? 'Success' : 'Error')}</i>`,
+                            html: `<i>${response.msg}.</i>`,
+                        }).then(function (isConfirm) {
+                            location.reload();
+                        });
+                    }
+                })
+            });
 
             var limit = $('select[name="datatable_length"]').val();
             $('select[name="datatable_length"]').on('change', function () {

@@ -1586,6 +1586,163 @@ class Mahasiswa extends CI_Controller
         }
     }
 
+    public function sync_batch_history()
+    {
+        if ($this->input->is_ajax_request()) {
+            $data_post = $this->input->post();
+            $filter_angkatan = $data_post['angkatan'];
+            $filter_prodi = $data_post['prodi'];
+
+            $data_mhs_simak = [];
+            if ($filter_angkatan != 'All') {
+                $substr = substr($filter_angkatan, 2, 2);
+                $str = (int) $substr;
+                $substrl_len = '';
+                if ($str <= 9) {
+                    $substrl_len = 1;
+                } else {
+                    $substrl_len = 2;
+                }
+
+                if ($filter_prodi != '') {
+                    $condition = [
+                        'table' => 'mahasiswa_pt',
+                        'where' => [
+                            'substr(nipd, 1, ' . $substrl_len . ')=' => (string) $str,
+                            'id_sms' => (string) $filter_prodi,
+                            'id_feeder !=' => ''
+                        ]
+                    ];
+                } else {
+                    $condition = [
+                        'table' => 'mahasiswa_pt',
+                        'where' => [
+                            'substr(nipd, 1, ' . $substrl_len . ')=' => (string) $str,
+                            'id_feeder !=' => ''
+                        ]
+                    ];
+                }
+            } else {
+                $condition = [
+                    'table' => 'mahasiswa_pt',
+                    'where' => ['id_feeder !=' => '']
+                ];
+            }
+            $data_mpt = $this->mahasiswa->get_data($condition)->result_array();
+
+            $Conf = $this->feeder->get_data()->row();
+            $this->__token__ = get_token($Conf);
+
+            $data_param = [
+                'token' => $this->__token__,
+                'act' => 'GetProfilPT'
+            ];
+            $responseProfil = service_request($data_param, $Conf);
+            $jsonProfil = json_encode($responseProfil);
+            $data_Profil = json_decode($jsonProfil, true);
+            $id_pt = $data_Profil['data'][0]['id_perguruan_tinggi'];
+
+            $status = false;
+            $msg = [];
+            $dataF = [];
+            $success_count = 0;
+            $error_count = 0;
+
+            foreach ($data_mpt as $mpt) {
+                $panjang_nim = strlen($mpt['nipd']);
+                if ($panjang_nim > 8) {
+                    $periode_masuk = '20' . substr($mpt['nipd'], 0, 2) . '1';
+                    $angkatan = '20' . substr($mpt['nipd'], 0, 2);
+                } else {
+                    $periode_masuk = '200' . substr($mpt['nipd'], 0, 1) . '1';
+                    $angkatan = '200' . substr($mpt['nipd'], 0, 1);
+                }
+
+                $dataProdi = $this->prodi->get_data(['id' => $mpt['id_sms']])->row_array();
+                $jenjang_didik = isset($dataProdi['nama_jenjang_pendidikan']) ? $dataProdi['nama_jenjang_pendidikan'] : 'S1';
+                $cek_konversi = substr($mpt['nipd'], 5, 1);
+                $dataPendaftaran = $this->masterdata->getData('masterdata_jenis_pendaftaran', 'nama_jenis_daftar', ['id_jenis_daftar' => $cek_konversi])->row_array();
+
+                $id_jenis_daftar = 1;
+                if (isset($dataPendaftaran['id_jenis_daftar'])) {
+                    $id_jenis_daftar = $dataPendaftaran['id_jenis_daftar'];
+                } elseif (isset($mpt['id_jns_daftar']) && $mpt['id_jns_daftar'] != '') {
+                    $id_jenis_daftar = $mpt['id_jns_daftar'];
+                }
+
+                if (substr($mpt['nipd'], 2, 3) == '113') {
+                    $id_pembiayaan = 3; 
+                    $biaya_awal = 2400000;
+                } else {
+                    $id_pembiayaan = 1; 
+                    $where_jnj = ['angkatan' => $angkatan];
+                    $dataBiaya = $this->masterdata->getDataBiayaKuliah($where_jnj)->row_array();
+                    if ($dataBiaya) {
+                        if ($jenjang_didik == 'S1') {
+                            $biaya_awal = (isset($dataBiaya['PK']) ? $dataBiaya['PK'] : 0) + (isset($dataBiaya['CS']) ? $dataBiaya['CS'] : 0);
+                        } else {
+                            $biaya_awal = (isset($dataBiaya['PK_D3']) ? $dataBiaya['PK_D3'] : 0) + (isset($dataBiaya['CS_D3']) ? $dataBiaya['CS_D3'] : 0);
+                        }
+                    } else {
+                        $biaya_awal = 0;
+                    }
+                }
+
+                $record = [
+                    'nim' => $mpt['nipd'],
+                    'id_jenis_daftar' => $id_jenis_daftar,
+                    'id_jalur_daftar' => 12,
+                    'id_periode_masuk' => $periode_masuk,
+                    'tanggal_daftar' => $mpt['tgl_masuk_sp'],
+                    'id_mahasiswa' => $mpt['id_feeder'],
+                    'id_pembiayaan' => $id_pembiayaan,
+                    'biaya_masuk' => $biaya_awal,
+                    'id_perguruan_tinggi' => $id_pt,
+                    'id_prodi' => isset($dataProdi['id_prodi']) ? $dataProdi['id_prodi'] : '',
+                ];
+
+                $data_param = [
+                    'token' => $this->__token__,
+                    "act" => 'InsertRiwayatPendidikanMahasiswa',
+                    "record" => $record,
+                ];
+                $response = service_request($data_param, $Conf);
+                $jsonResponse = json_encode($response);
+                $responseArray = json_decode($jsonResponse, true);
+
+                if (isset($responseArray['error_code']) && $responseArray['error_code'] == 0) {
+                    $success_count++;
+                } else {
+                    $error_count++;
+                    $err_desc = isset($responseArray['error_desc']) ? $responseArray['error_desc'] : 'Unknown error';
+                    if (!in_array($err_desc, $msg)) {
+                        $msg[] = $mpt['nipd'] . ": " . $err_desc;
+                    }
+                }
+            }
+
+            if ($success_count > 0 || $error_count == 0) {
+                $status = true;
+            }
+
+            if (empty($msg)) {
+                $msg[] = "Berhasil mensinkronisasi " . $success_count . " histori pendidikan.";
+            } else {
+                array_unshift($msg, "Berhasil: " . $success_count . ", Gagal: " . $error_count . ".");
+            }
+
+            $response = [
+                'status' => $status,
+                'msg' => implode("<br>", $msg),
+                'res_code' => $status ? 'Success' : 'Error',
+                'data' => []
+            ];
+            echo json_encode($response);
+        } else {
+            handler_404();
+        }
+    }
+
     public function update_data_to_feeder(array $data, object $config)
     {
         $data_param = [
