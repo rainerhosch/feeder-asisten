@@ -27,6 +27,9 @@ $(document).ready(function() {
                 url: (typeof BASE_URL !== 'undefined' ? BASE_URL : '') + 'manajemen/Config/refresh_token',
                 type: 'POST',
                 dataType: 'json',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 success: function(response) {
                     if (response.status) {
                         sec = 180;
