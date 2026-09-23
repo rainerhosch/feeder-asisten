@@ -107,7 +107,7 @@
                 </div>
             </a>
         </div>
-        <div class="col-md-3 col-lg-3">
+        <!-- <div class="col-md-3 col-lg-3">
             <a href="javascript:void(0)" class="widget widget-hover-effect1">
                 <div class="widget-simple">
                     <div class="row">
@@ -136,7 +136,7 @@
                     </div>
                 </div>
             </a>
-        </div>
+        </div> -->
         <div class="col-md-3 col-lg-3">
             <a href="javascript:void(0)" class="widget widget-hover-effect1">
                 <div class="widget-simple">
@@ -152,7 +152,8 @@
                                     <tr>
                                         <td>
                                             <div class="form-group">
-                                                <select class="form-control form-control-sm text-center" id="filter_sync" name="filter_sync">
+                                                <select class="form-control form-control-sm text-center"
+                                                    id="filter_sync" name="filter_sync">
                                                     <option value="all">-- Semua --</option>
                                                     <option value="1">Sudah Sync</option>
                                                     <option value="0">Belum Sync</option>
@@ -167,19 +168,6 @@
                 </div>
             </a>
         </div>
-        <!-- <div class="col-sm-6 col-lg-3">
-            <a href="javascript:void(0)" class="widget widget-hover-effect1">
-                <div class="widget-simple">
-                    <div class="widget-icon pull-left themed-background-amethyst animation-fadeIn">
-                        <i class="gi gi-picture"></i>
-                    </div>
-                    <h3 class="widget-content text-right animation-pullDown">
-                        +30 <strong>Photos</strong>
-                        <small>Gallery</small>
-                    </h3>
-                </div>
-            </a>
-        </div> -->
     </div>
 
     <div class="block">
@@ -393,7 +381,7 @@
                 $('.btn_sync_all').prop('disabled', true);
             }
 
-            if(filterKRSSelected != 'x'){
+            if (filterKRSSelected != 'x') {
                 let krsOnCookie = Cookies.get("filterKRS");
                 let html = `<option class="text-center" value="x">--Pilih Filter KRS--</option>`;
                 let dataKrs = [
@@ -409,7 +397,7 @@
                 });
                 $("#filter_krs").html(html);
             }
-            
+
             var filterSyncSelected = Cookies.get("filterSync");
             if (filterSyncSelected !== undefined && filterSyncSelected != 'all') {
                 let html = `<option class="text-center" value="all">-- Semua --</option>`;
@@ -547,9 +535,9 @@
                 e.preventDefault();
                 let keyword = $(this).val();
                 let offset = $(this).attr('data-ci-pagination-page');
-                
+
                 clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(function() {
+                searchTimeout = setTimeout(function () {
                     if (keyword != '') {
                         loadFilter(keyword);
                     } else {
@@ -665,7 +653,7 @@
                         html += `<td class="">${mhs.nama_agama}</td>`;
                         let totalSks = 0;
                         if (Array.isArray(mhs.data_krs)) {
-                            $.each(mhs.data_krs, function(kk, krs){
+                            $.each(mhs.data_krs, function (kk, krs) {
                                 totalSks += parseInt(krs.sks) || 0;
                             });
                         }
@@ -724,9 +712,9 @@
 
                 $('#data_mahasiswa_tbody').html(html);
                 // new DataTable('#menu-datatable');
-                
+
                 // Initialize async checks for history status
-                $('.check_sync_history').each(function() {
+                $('.check_sync_history').each(function () {
                     let el = $(this);
                     let nipd = el.data('nipd');
                     let id_pd = el.data('id_pd');
@@ -739,7 +727,7 @@
                         },
                         data: { nipd: nipd },
                         dataType: 'json',
-                        success: function(response) {
+                        success: function (response) {
                             if (response.status === 1) {
                                 $(`#history_status_${id_pd}`).html(`<span class="badge badge-pill badge-info"><i class="fa fa-check"></i></span>`);
                             } else {
@@ -804,7 +792,7 @@
 
                     });
                 }
-                
+
                 // Bind to any already rendered buttons (e.g., if sync_history wasn't 2 for some reason)
                 bindSyncHistori($('.btnSyncHistori'));
 

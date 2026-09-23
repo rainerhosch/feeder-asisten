@@ -121,6 +121,7 @@ class M_mahasiswa extends CI_Model
         if (isset($data['where'])) {
             $this->db_simak->where($data['where']);
         }
+
         
         $this->db_simak->group_by('mpt.nipd');
         return $this->db_simak->get()->num_rows();

@@ -763,6 +763,7 @@ class Mahasiswa extends CI_Controller
             $nim_krs = implode(',', $nim_krs);
             // var_dump(($nim_krs));
             // die;
+            
             $where = [];
             
             // Global filter: only show angkatan >= 2013 and <= current year
