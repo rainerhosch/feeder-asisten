@@ -1354,6 +1354,28 @@ class Mahasiswa extends CI_Controller
             $valid_kebutuhan = array_column($this->db->get('masterdata_kebutuhan_khusus')->result_array(), 'id_kebutuhan_khusus');
 
             foreach ($data_mhs_simak as $j => $ds) {
+                // KRS Check
+                $nipd_len = strlen($ds['nipd']);
+                $angkatan = ($nipd_len <= 8) ? '200' . substr($ds['nipd'], 0, 1) : '20' . substr($ds['nipd'], 0, 2);
+                $current_year = date('Y');
+
+                if ($angkatan != $current_year) {
+                    // Check if student has KRS for their angkatan year on db_simak
+                    $krs_param = [
+                        'table' => 'krs_new',
+                        'where' => [
+                            'nipd' => $ds['nipd'],
+                            'SUBSTR(id_tahun_ajaran, 1, 4) =' => $angkatan
+                        ]
+                    ];
+                    $krs_check = $this->mahasiswa->get_data($krs_param)->row_array();
+                    if (!$krs_check) {
+                        $msg[] = "Sinkronisasi dibatalkan: Mahasiswa " . $ds['nm_pd'] . " (" . $ds['nipd'] . ") belum mengisi KRS pada tahun angkatan " . $angkatan;
+                        $status = false;
+                        continue;
+                    }
+                }
+
                 $Conf = $this->feeder->get_data()->row(); // Get data config
                 $this->__token__ = get_token($Conf); // Get Token Feeder from config account
                 $data_post['token'] = $this->__token__;
@@ -1363,10 +1385,10 @@ class Mahasiswa extends CI_Controller
                 $data_post['nm_pd'] = $ds['nm_pd'];
                 $responseArray = $this->cek_data_from_feeder($data_post, $Conf);
 
-                $data_feeder = $responseArray['data'];
-                $error_code = $responseArray['error_code'];
-                $jumlah = $responseArray['jumlah'];
-                $response_status = $responseArray['error_desc'];
+                $data_feeder = isset($responseArray['data']) ? $responseArray['data'] : [];
+                $error_code = isset($responseArray['error_code']) ? $responseArray['error_code'] : null;
+                $jumlah = isset($responseArray['jumlah']) ? $responseArray['jumlah'] : (is_array($data_feeder) ? count($data_feeder) : 0);
+                $response_status = isset($responseArray['error_desc']) ? $responseArray['error_desc'] : null;
                 if (isset($data_feeder[0]['id_mahasiswa'])) {
                     $dataFromFeeder[$j] = $data_feeder;
                 }
