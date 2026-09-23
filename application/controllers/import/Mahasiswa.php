@@ -763,49 +763,27 @@ class Mahasiswa extends CI_Controller
             $nim_krs = implode(',', $nim_krs);
             // var_dump(($nim_krs));
             // die;
-            if ($cek_len == 0) {
-                if ($filter_angkatan != '0' && $filter_prodi != null) {
-                    $sub_angkatan = substr($filter_angkatan, 2, 2);
-                    // if($filter_krs != '1'){
-                    //     $where_in = [
-                    //         'data' => $nim_krs,
-                    //         'condition' => 'in'
-                    //     ];
-                    // }else{
-                    //     $where_in = [
-                    //         'data' => $nim_krs,
-                    //         'condition' => 'not'
-                    //     ];
-                    // }
-                    $where = [
-                        'SUBSTR(mpt.nipd,1,2) =' => $sub_angkatan,
-                        'mpt.id_sms =' => $filter_prodi,
-                        // 'mpt.nipd IN' => $nim_krs,
-                        // 'kn.id_tahun_ajaran' => $filter_krs
-                    ];
-                } else if ($filter_angkatan != '0' && $filter_prodi == null) {
-                    $sub_angkatan = substr($filter_angkatan, 2, 2);
-                    // $where_in = null;
-                    $where = [
-                        'SUBSTR(mpt.nipd,1,2) =' => $sub_angkatan,
-                    ];
-                } else if ($filter_angkatan == '0' && $filter_prodi != null) {
-                    // $where_in = null;
-                    $where = [
-                        'mpt.id_sms =' => $filter_prodi,
-                    ];
-                } else {
-                    $where = null;
-                    // $where_in = null;
-                }
-            } else {
+            $where = [];
+            
+            if ($filter_angkatan != null && $filter_angkatan != '0') {
+                $sub_angkatan = substr($filter_angkatan, 2, 2);
+                $where['SUBSTR(mpt.nipd,1,2) ='] = $sub_angkatan;
+            }
+            
+            if ($filter_prodi != null && $filter_prodi != '0') {
+                $where['mpt.id_sms ='] = $filter_prodi;
+            }
+            
+            if ($cek_len > 0) {
                 if (is_numeric($filter_search)) {
-                    $where = "nipd LIKE '%" . $filter_search . "%'";
-                    // $where_in = null;
+                    $where['mpt.nipd LIKE'] = "%" . $filter_search . "%";
                 } else {
-                    $where = "mahasiswa.nm_pd LIKE '%" . $filter_search . "%'";
-                    // $where_in = null;
+                    $where['mahasiswa.nm_pd LIKE'] = "%" . $filter_search . "%";
                 }
+            }
+            
+            if (empty($where)) {
+                $where = null;
             }
             // dump($where);
             // die;

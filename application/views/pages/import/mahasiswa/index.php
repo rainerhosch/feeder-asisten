@@ -522,6 +522,9 @@
                     data: {
                         limit: limit,
                         filter: {
+                            'prodi': Cookies.get("filterProdi"),
+                            'angkatan': Cookies.get("filterAngkatan"),
+                            'status_krs': Cookies.get("filterKRS"),
                             'search': keyword
                         },
                         url_pagination: 'DataMhs'
