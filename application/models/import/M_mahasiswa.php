@@ -189,8 +189,9 @@ class M_mahasiswa extends CI_Model
     {
         $angkatan_expr = $this->_angkatan_expr($alias);
         
-        // Selalu filter angkatan >= 2013
+        // Selalu filter angkatan >= 2013 dan <= tahun saat ini
         $this->db_simak->where('CAST(' . $angkatan_expr . ' AS UNSIGNED) >=', 2013, false);
+        $this->db_simak->where('CAST(' . $angkatan_expr . ' AS UNSIGNED) <=', date('Y'), false);
 
         if (!empty($filters['angkatan']) && $filters['angkatan'] != '0') {
             $this->db_simak->where($angkatan_expr . ' =', $filters['angkatan'], false);

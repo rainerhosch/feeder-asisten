@@ -765,9 +765,10 @@ class Mahasiswa extends CI_Controller
             // die;
             $where = [];
             
-            // Global filter: only show angkatan >= 2013
+            // Global filter: only show angkatan >= 2013 and <= current year
             $angkatan_expr = 'CAST(CASE WHEN LENGTH(mpt.nipd) <= 8 THEN CONCAT("200", SUBSTR(mpt.nipd,1,1)) ELSE CONCAT("20", SUBSTR(mpt.nipd,1,2)) END AS UNSIGNED)';
             $where[$angkatan_expr . ' >='] = 2013;
+            $where[$angkatan_expr . ' <='] = date('Y');
 
             if ($filter_angkatan != null && $filter_angkatan != '0') {
                 $where[$angkatan_expr . ' ='] = $filter_angkatan;
