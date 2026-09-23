@@ -6,7 +6,7 @@ docs/*
 404.html
 502.html
 index.html
-
+test_*.php
 
 application/cache/*
 !application/cache/index.html

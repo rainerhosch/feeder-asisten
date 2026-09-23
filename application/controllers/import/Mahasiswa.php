@@ -1103,12 +1103,19 @@ class Mahasiswa extends CI_Controller
                 // die;
 
                 $ds = $data_mhs;
-                $fields_to_zero = [
-                    'id_kebutuhan_khusus_mahasiswa', 'id_kebutuhan_khusus_ayah', 'id_kebutuhan_khusus_ibu',
-                    'id_penghasilan_ayah', 'id_penghasilan_ibu', 'id_penghasilan_wali'
-                ];
-                foreach ($fields_to_zero as $f) {
-                    if (!isset($ds[$f]) || $ds[$f] === null || trim((string)$ds[$f]) === '') {
+                $valid_penghasilan = array_column($this->db->get('masterdata_penghasilan')->result_array(), 'id_penghasilan');
+                $valid_kebutuhan = array_column($this->db->get('masterdata_kebutuhan_khusus')->result_array(), 'id_kebutuhan_khusus');
+
+                $penghasilan_fields = ['id_penghasilan_ayah', 'id_penghasilan_ibu', 'id_penghasilan_wali'];
+                foreach ($penghasilan_fields as $f) {
+                    if (!isset($ds[$f]) || !in_array((string) $ds[$f], $valid_penghasilan)) {
+                        $ds[$f] = '0';
+                    }
+                }
+
+                $kebutuhan_fields = ['id_kebutuhan_khusus_mahasiswa', 'id_kebutuhan_khusus_ayah', 'id_kebutuhan_khusus_ibu'];
+                foreach ($kebutuhan_fields as $f) {
+                    if (!isset($ds[$f]) || !in_array((string) $ds[$f], $valid_kebutuhan)) {
                         $ds[$f] = '0';
                     }
                 }
@@ -1379,6 +1386,10 @@ class Mahasiswa extends CI_Controller
             $status = false;
             $msg = [];
             $dataF = [];
+
+            $valid_penghasilan = array_column($this->db->get('masterdata_penghasilan')->result_array(), 'id_penghasilan');
+            $valid_kebutuhan = array_column($this->db->get('masterdata_kebutuhan_khusus')->result_array(), 'id_kebutuhan_khusus');
+
             foreach ($data_mhs_simak as $j => $ds) {
                 $Conf = $this->feeder->get_data()->row(); // Get data config
                 $this->__token__ = get_token($Conf); // Get Token Feeder from config account
@@ -1424,12 +1435,16 @@ class Mahasiswa extends CI_Controller
                     // insert ke 
                     $data_post['action'] = 'InsertBiodataMahasiswa';
 
-                    $fields_to_zero = [
-                        'id_kebutuhan_khusus_mahasiswa', 'id_kebutuhan_khusus_ayah', 'id_kebutuhan_khusus_ibu',
-                        'id_penghasilan_ayah', 'id_penghasilan_ibu', 'id_penghasilan_wali'
-                    ];
-                    foreach ($fields_to_zero as $f) {
-                        if (!isset($ds[$f]) || $ds[$f] === null || trim((string)$ds[$f]) === '') {
+                    $penghasilan_fields = ['id_penghasilan_ayah', 'id_penghasilan_ibu', 'id_penghasilan_wali'];
+                    foreach ($penghasilan_fields as $f) {
+                        if (!isset($ds[$f]) || !in_array((string) $ds[$f], $valid_penghasilan)) {
+                            $ds[$f] = '0';
+                        }
+                    }
+
+                    $kebutuhan_fields = ['id_kebutuhan_khusus_mahasiswa', 'id_kebutuhan_khusus_ayah', 'id_kebutuhan_khusus_ibu'];
+                    foreach ($kebutuhan_fields as $f) {
+                        if (!isset($ds[$f]) || !in_array((string) $ds[$f], $valid_kebutuhan)) {
                             $ds[$f] = '0';
                         }
                     }
