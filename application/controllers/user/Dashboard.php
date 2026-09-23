@@ -59,7 +59,7 @@ class Dashboard extends CI_Controller
         // Map id_sms => nama_program_studi
         $prodi_map = [];
         foreach ($prodi_list as $p) {
-            $prodi_map[$p['id_prodi']] = $p['nama_program_studi'] . ' (' . $p['nama_jenjang_pendidikan'] . ')';
+            $prodi_map[$p['id']] = $p['nama_program_studi'] . ' (' . $p['nama_jenjang_pendidikan'] . ')';
         }
 
         $by_prodi = [];

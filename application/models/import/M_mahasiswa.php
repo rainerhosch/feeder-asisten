@@ -171,6 +171,29 @@ class M_mahasiswa extends CI_Model
     }
 
     /**
+     * SQL expression to derive angkatan year from nipd.
+     * - 8-digit NIM (old format): 1st digit is year → CONCAT("200", SUBSTR(nipd,1,1)) e.g. 9→2009
+     * - 9+ digit NIM (new format): 1st 2 digits are year → CONCAT("20", SUBSTR(nipd,1,2)) e.g. 10→2010
+     */
+    private function _angkatan_expr($alias = 'mpt')
+    {
+        return 'CASE WHEN LENGTH(' . $alias . '.nipd) <= 8 '
+             . 'THEN CONCAT("200", SUBSTR(' . $alias . '.nipd,1,1)) '
+             . 'ELSE CONCAT("20", SUBSTR(' . $alias . '.nipd,1,2)) END';
+    }
+
+    /**
+     * Apply angkatan filter using the correct nipd parsing logic
+     */
+    private function _apply_angkatan_filter($filters, $alias = 'mpt')
+    {
+        if (!empty($filters['angkatan']) && $filters['angkatan'] != '0') {
+            $angkatan_expr = $this->_angkatan_expr($alias);
+            $this->db_simak->where($angkatan_expr . ' =', $filters['angkatan'], false);
+        }
+    }
+
+    /**
      * Get overall sync statistics (total, synced, unsynced)
      * @param array|null $filters ['prodi' => id_sms, 'angkatan' => tahun]
      * @return array
@@ -188,10 +211,7 @@ class M_mahasiswa extends CI_Model
         if (!empty($filters['prodi'])) {
             $this->db_simak->where('mpt.id_sms', $filters['prodi']);
         }
-        if (!empty($filters['angkatan']) && $filters['angkatan'] != '0') {
-            $sub_angkatan = substr($filters['angkatan'], 2, 2);
-            $this->db_simak->where('SUBSTR(mpt.nipd,1,2) =', $sub_angkatan);
-        }
+        $this->_apply_angkatan_filter($filters);
 
         return $this->db_simak->get()->row_array();
     }
@@ -215,10 +235,7 @@ class M_mahasiswa extends CI_Model
         if (!empty($filters['prodi'])) {
             $this->db_simak->where('mpt.id_sms', $filters['prodi']);
         }
-        if (!empty($filters['angkatan']) && $filters['angkatan'] != '0') {
-            $sub_angkatan = substr($filters['angkatan'], 2, 2);
-            $this->db_simak->where('SUBSTR(mpt.nipd,1,2) =', $sub_angkatan);
-        }
+        $this->_apply_angkatan_filter($filters);
 
         $this->db_simak->group_by('mpt.id_sms');
         return $this->db_simak->get()->result_array();
@@ -231,25 +248,25 @@ class M_mahasiswa extends CI_Model
      */
     public function get_stats_by_angkatan($filters = null)
     {
-        $this->db_simak->select('
-            CONCAT("20", SUBSTR(mpt.nipd,1,2)) as angkatan,
+        $angkatan_expr = $this->_angkatan_expr();
+
+        $this->db_simak->select("
+            {$angkatan_expr} as angkatan,
             COUNT(DISTINCT mpt.id_pd) as total,
-            SUM(CASE WHEN mpt.id_feeder IS NOT NULL AND mpt.id_feeder != "" THEN 1 ELSE 0 END) as synced,
-            SUM(CASE WHEN mpt.id_feeder IS NULL OR mpt.id_feeder = "" THEN 1 ELSE 0 END) as unsynced
-        ');
+            SUM(CASE WHEN mpt.id_feeder IS NOT NULL AND mpt.id_feeder != '' THEN 1 ELSE 0 END) as synced,
+            SUM(CASE WHEN mpt.id_feeder IS NULL OR mpt.id_feeder = '' THEN 1 ELSE 0 END) as unsynced
+        ", false);
         $this->db_simak->from('mahasiswa_pt mpt');
         $this->db_simak->join('mahasiswa m', 'm.id_pd = mpt.id_pd', 'left');
 
         if (!empty($filters['prodi'])) {
             $this->db_simak->where('mpt.id_sms', $filters['prodi']);
         }
-        if (!empty($filters['angkatan']) && $filters['angkatan'] != '0') {
-            $sub_angkatan = substr($filters['angkatan'], 2, 2);
-            $this->db_simak->where('SUBSTR(mpt.nipd,1,2) =', $sub_angkatan);
-        }
+        $this->_apply_angkatan_filter($filters);
 
-        $this->db_simak->group_by('SUBSTR(mpt.nipd,1,2)');
+        $this->db_simak->group_by($angkatan_expr);
         $this->db_simak->order_by('angkatan', 'DESC');
         return $this->db_simak->get()->result_array();
     }
-}
+}
+
