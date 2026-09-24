@@ -867,7 +867,7 @@
                                 Swal.fire({
                                     icon: 'error',
                                     title: `<i>Error : ${response.res_code}</i>`,
-                                    html: `<i>${response.msg}.</i></br><b><a target="_blank" href="<?= base_url() ?>import/Mahasiswa/detail?id=${id_pd}">Perbaiki Data</a></b>`,
+                                    html: `<i>${response.msg}.</i></br><b><a target="_blank" href="<?= base_url() ?>import/mahasiswa/detail?id=${id_pd}">Perbaiki Data</a></b>`,
                                 }).then(function (isConfirm) {
                                     // $('#status').append();
                                 });
@@ -876,7 +876,7 @@
                                 Swal.fire({
                                     icon: 'success',
                                     title: `<i>Sucess</i>`,
-                                    html: `<i>${response.msg}.</i></br><b><a href="<?= base_url() ?>import/Mahasiswa/histori_pendidikan?id=${id_pd}">Tambahkan Histori Pendidikan</a></b>`,
+                                    html: `<i>${response.msg}.</i></br><b><a href="<?= base_url() ?>import/mahasiswa/histori_pendidikan?id=${id_pd}">Tambahkan Histori Pendidikan</a></b>`,
                                 }).then(function (isConfirm) {
                                     $(`#status_${id_pd}`).html(`<span class="badge badge-pill badge-success">success</span>`);
                                     $(`#history_status_${id_pd}`).html(`<button href="javascript:void(0)" class="btn btn-xs btn-warning btnSyncHistori" data-nipd="${nipd}" data-id_pd="${id_pd}" data-nm_pd="${nm_pd}" data-toggle="tooltip" title="Insert NIM to Feeder"><i class="hi hi-refresh"></i></button>`);
