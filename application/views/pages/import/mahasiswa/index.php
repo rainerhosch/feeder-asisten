@@ -154,9 +154,10 @@
                                             <div class="form-group">
                                                 <select class="form-control form-control-sm text-center"
                                                     id="filter_sync" name="filter_sync">
-                                                    <option value="all">-- Semua --</option>
-                                                    <option value="1">Sudah Sync</option>
-                                                    <option value="0">Belum Sync</option>
+                                                    <option value="all">-- Semua Status Sync --</option>
+                                                    <option value="0">Belum Sync Biodata</option>
+                                                    <option value="1">Sudah Sync Biodata, Histori Belum</option>
+                                                    <option value="2">Sudah Sync Semua</option>
                                                 </select>
                                             </div>
                                         </td>
@@ -767,7 +768,7 @@
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         },
-                        data: { nipd: nipd },
+                        data: { nipd: nipd, id_pd: id_pd },
                         dataType: 'json',
                         success: function (response) {
                             if (response.status === 1) {

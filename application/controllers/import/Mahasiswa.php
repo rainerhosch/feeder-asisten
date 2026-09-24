@@ -368,17 +368,47 @@ class Mahasiswa extends CI_Controller
             $jsonResponse = json_encode($response);
             $responseArray = json_decode($jsonResponse, true);
             if ($responseArray['error_code'] == 0) {
+                $this->mahasiswa->update_data([
+                    'table' => 'mahasiswa_pt',
+                    'where' => ['id_pd' => $data_post['id_pd']],
+                    'data' => ['id_riwayat_pendidikan_feeder' => $responseArray['data']['id_registrasi_mahasiswa']]
+                ]);
                 $response = [
                     'status' => true,
                     'code' => $responseArray['error_code'],
                     'msg' => 'Histori Pendidikan Berhasil di input',
                 ];
             } else {
-                $response = [
-                    'status' => false,
-                    'code' => $responseArray['error_code'],
-                    'msg' => $responseArray['error_desc'],
+                $err_desc = $responseArray['error_desc'];
+                $fetch_param = [
+                    'token' => $this->__token__,
+                    "act" => 'GetListRiwayatPendidikanMahasiswa',
+                    "filter" => "nim = '" . $data['record']['nim'] . "'",
+                    "limit" => "1",
+                    "offset" => "0"
                 ];
+                $res_fetch = service_request($fetch_param, $Conf);
+                $res_fetch_arr = json_decode(json_encode($res_fetch), true);
+
+                if (isset($res_fetch_arr['error_code']) && $res_fetch_arr['error_code'] == 0 && count($res_fetch_arr['data']) > 0) {
+                    $id_registrasi = $res_fetch_arr['data'][0]['id_registrasi_mahasiswa'];
+                    $this->mahasiswa->update_data([
+                        'table' => 'mahasiswa_pt',
+                        'where' => ['id_pd' => $data_post['id_pd']],
+                        'data' => ['id_riwayat_pendidikan_feeder' => $id_registrasi]
+                    ]);
+                    $response = [
+                        'status' => true,
+                        'code' => 0,
+                        'msg' => 'Data sudah ada di Feeder. Sinkronisasi histori berhasil ditautkan!',
+                    ];
+                } else {
+                    $response = [
+                        'status' => false,
+                        'code' => $responseArray['error_code'],
+                        'msg' => $err_desc,
+                    ];
+                }
             }
 
             echo json_encode($response);
@@ -763,9 +793,9 @@ class Mahasiswa extends CI_Controller
             $nim_krs = implode(',', $nim_krs);
             // var_dump(($nim_krs));
             // die;
-            
+
             $where = [];
-            
+
             // Global filter: only show angkatan >= 2013 and <= current year
             $angkatan_expr = 'CAST(CASE WHEN LENGTH(mpt.nipd) <= 8 THEN CONCAT("200", SUBSTR(mpt.nipd,1,1)) ELSE CONCAT("20", SUBSTR(mpt.nipd,1,2)) END AS UNSIGNED)';
             $where[$angkatan_expr . ' >='] = 2013;
@@ -774,24 +804,26 @@ class Mahasiswa extends CI_Controller
             if ($filter_angkatan != null && $filter_angkatan != '0') {
                 $where[$angkatan_expr . ' ='] = $filter_angkatan;
             }
-            
+
             $filter_sync = null;
             if (isset($filter['status_sync'])) {
                 $filter_sync = $filter['status_sync'];
             }
-            
+
             if ($filter_prodi != null && $filter_prodi != '0') {
                 $where['mpt.id_sms ='] = $filter_prodi;
             }
-            
+
             if ($filter_sync !== null && $filter_sync !== 'all' && $filter_sync !== '') {
-                if ($filter_sync == '1') {
-                    $where['mpt.id_feeder IS NOT NULL AND mpt.id_feeder != ""'] = null;
+                if ($filter_sync == '2') {
+                    $where['mpt.id_feeder IS NOT NULL AND mpt.id_feeder != "" AND mpt.id_riwayat_pendidikan_feeder IS NOT NULL AND mpt.id_riwayat_pendidikan_feeder != ""'] = null;
+                } else if ($filter_sync == '1') {
+                    $where['mpt.id_feeder IS NOT NULL AND mpt.id_feeder != "" AND (mpt.id_riwayat_pendidikan_feeder IS NULL OR mpt.id_riwayat_pendidikan_feeder = "")'] = null;
                 } else if ($filter_sync == '0') {
                     $where['(mpt.id_feeder IS NULL OR mpt.id_feeder = "")'] = null;
                 }
             }
-            
+
             if ($cek_len > 0) {
                 if (is_numeric($filter_search)) {
                     $where['mpt.nipd LIKE'] = "%" . $filter_search . "%";
@@ -799,7 +831,7 @@ class Mahasiswa extends CI_Controller
                     $where['mahasiswa.nm_pd LIKE'] = "%" . $filter_search . "%";
                 }
             }
-            
+
             if (empty($where)) {
                 $where = null;
             }
@@ -1005,6 +1037,14 @@ class Mahasiswa extends CI_Controller
             if (isset($response->error_code) && $response->error_code == 0) {
                 if (isset($data['data']) && count($data['data']) > 0) {
                     $sync_status = 1;
+                    $id_pd = $this->input->post('id_pd');
+                    if ($id_pd) {
+                        $this->mahasiswa->update_data([
+                            'table' => 'mahasiswa_pt',
+                            'where' => ['id_pd' => $id_pd],
+                            'data' => ['id_riwayat_pendidikan_feeder' => $data['data'][0]['id_registrasi_mahasiswa']]
+                        ]);
+                    }
                 }
             } else {
                 $sync_status = 99;
@@ -1671,10 +1711,10 @@ class Mahasiswa extends CI_Controller
                 }
 
                 if (substr($mpt['nipd'], 2, 3) == '113') {
-                    $id_pembiayaan = 3; 
+                    $id_pembiayaan = 3;
                     $biaya_awal = 2400000;
                 } else {
-                    $id_pembiayaan = 1; 
+                    $id_pembiayaan = 1;
                     $where_jnj = ['angkatan' => $angkatan];
                     $dataBiaya = $this->masterdata->getDataBiayaKuliah($where_jnj)->row_array();
                     if ($dataBiaya) {
@@ -1688,7 +1728,7 @@ class Mahasiswa extends CI_Controller
                     }
                 }
 
-                $record = [
+                $data['record'] = [
                     'nim' => $mpt['nipd'],
                     'id_jenis_daftar' => $id_jenis_daftar,
                     'id_jalur_daftar' => 12,
@@ -1704,19 +1744,46 @@ class Mahasiswa extends CI_Controller
                 $data_param = [
                     'token' => $this->__token__,
                     "act" => 'InsertRiwayatPendidikanMahasiswa',
-                    "record" => $record,
+                    "record" => $data['record'],
                 ];
                 $response = service_request($data_param, $Conf);
                 $jsonResponse = json_encode($response);
                 $responseArray = json_decode($jsonResponse, true);
 
+
                 if (isset($responseArray['error_code']) && $responseArray['error_code'] == 0) {
+                    $this->mahasiswa->update_data([
+                        'table' => 'mahasiswa_pt',
+                        'where' => ['id_pd' => $mpt['id_pd']],
+                        'data' => ['id_riwayat_pendidikan_feeder' => $responseArray['data']['id_registrasi_mahasiswa']]
+                    ]);
                     $success_count++;
                 } else {
-                    $error_count++;
                     $err_desc = isset($responseArray['error_desc']) ? $responseArray['error_desc'] : 'Unknown error';
-                    if (!in_array($err_desc, $msg)) {
-                        $msg[] = $mpt['nipd'] . ": " . $err_desc;
+
+                    $fetch_param = [
+                        'token' => $this->__token__,
+                        "act" => 'GetListRiwayatPendidikanMahasiswa',
+                        "filter" => "nim = '" . $data['record']['nim'] . "'",
+                        "limit" => "1",
+                        "offset" => "0"
+                    ];
+                    $res_fetch = service_request($fetch_param, $Conf);
+                    $res_fetch_arr = json_decode(json_encode($res_fetch), true);
+
+                    if (isset($res_fetch_arr['error_code']) && $res_fetch_arr['error_code'] == 0 && count($res_fetch_arr['data']) > 0) {
+                        $id_registrasi = $res_fetch_arr['data'][0]['id_registrasi_mahasiswa'];
+                        $this->mahasiswa->update_data([
+                            'table' => 'mahasiswa_pt',
+                            'where' => ['id_pd' => $mpt['id_pd']],
+                            'data' => ['id_riwayat_pendidikan_feeder' => $id_registrasi]
+                        ]);
+                        $success_count++;
+                    } else {
+                        $error_count++;
+                        if (!in_array($err_desc, $msg)) {
+                            $msg[] = $mpt['nipd'] . ": " . $err_desc;
+                        }
                     }
                 }
             }
