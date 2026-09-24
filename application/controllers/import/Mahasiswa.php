@@ -185,9 +185,8 @@ class Mahasiswa extends CI_Controller
 
 
         $dataProdi = $this->prodi->get_data(['id' => $res_mhs_pt['id_sms']])->row_array();
-        // echo '<pre>';
-        // var_dump($res_mhs_pt);
-        // echo '</pre>';
+
+        // dump($res_mhs_pt);
         // die;
 
 
@@ -196,13 +195,12 @@ class Mahasiswa extends CI_Controller
         if ($dataPendaftaran == null) {
             $dataPendaftaran['nama_jenis_daftar'] = null;
         }
-        $dataJalurMasuk = $this->masterdata->getData('masterdata_jalur_masuk', 'nama_jalur_masuk', ['id_jalur_masuk' => 12])->row_array();
+        $dataJalurMasuk = $this->masterdata->getData('masterdata_jalur_masuk', 'nama_jalur_masuk', ['id_jalur_masuk' => $res_mhs_pt['id_jalur_daftar']])->row_array();
         if ($dataPendaftaran == null) {
             $dataJalurMasuk['nama_jalur_masuk'] = null;
         }
-        // echo '<pre>';
-        // var_dump($dataPendaftaran);
-        // echo '</pre>';
+
+        // dump($dataPendaftaran);
         // die;
         $res_mhs_pt['prodi'] = $dataProdi;
         // histori pendidikan
@@ -901,15 +899,15 @@ class Mahasiswa extends CI_Controller
                     $resMhs[$i]['angkatan'] = isset($val['nipd']) ? '20' . substr($val['nipd'], 0, 2) : '';
                     $kode_daftar = substr($val['nipd'], 5, 1);
                     if ($kode_daftar == '1') {
-                        $resMhs[$i]['jenis_daftar'] = 'Reguler';
+                        $resMhs[$i]['jenis_daftar'] = 'Peserta didik baru' //'Reguler';
                     } elseif ($kode_daftar == '2') {
-                        $resMhs[$i]['jenis_daftar'] = 'Konversi Internal (RPL)';
+                        $resMhs[$i]['jenis_daftar'] = 'Peserta didik baru (<b style="color: #007bff;">Konversi Internal (RPL)</b>)';
                     } elseif ($kode_daftar == '3') {
-                        $resMhs[$i]['jenis_daftar'] = 'Konversi Eksternal (RPL)';
+                        $resMhs[$i]['jenis_daftar'] = 'Peserta didik baru (<b style="color: #ff0000;">Konversi Eksternal (RPL)</b>)';
                     } elseif ($kode_daftar == '4') {
-                        $resMhs[$i]['jenis_daftar'] = 'Beasiswa KIP';
+                        $resMhs[$i]['jenis_daftar'] = 'Peserta didik baru (<b>Beasiswa KIP</b>)';
                     } elseif ($kode_daftar == '5') {
-                        $resMhs[$i]['jenis_daftar'] = 'Beasiswa Yayasan';
+                        $resMhs[$i]['jenis_daftar'] = 'Peserta didik baru (<b>Beasiswa Yayasan</b>)';
                     } else {
                         $resMhs[$i]['jenis_daftar'] = 'Lainnya';
                     }
