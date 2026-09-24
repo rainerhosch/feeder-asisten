@@ -899,11 +899,11 @@ class Mahasiswa extends CI_Controller
                     $resMhs[$i]['angkatan'] = isset($val['nipd']) ? '20' . substr($val['nipd'], 0, 2) : '';
                     $kode_daftar = substr($val['nipd'], 5, 1);
                     if ($kode_daftar == '1') {
-                        $resMhs[$i]['jenis_daftar'] = 'Peserta didik baru' //'Reguler';
+                        $resMhs[$i]['jenis_daftar'] = 'Peserta didik baru'; //'Reguler';
                     } elseif ($kode_daftar == '2') {
-                        $resMhs[$i]['jenis_daftar'] = 'Peserta didik baru (<b style="color: #007bff;">Konversi Internal (RPL)</b>)';
+                        $resMhs[$i]['jenis_daftar'] = '(<b style="color: #007bff;">Konversi Internal (RPL)</b>)';
                     } elseif ($kode_daftar == '3') {
-                        $resMhs[$i]['jenis_daftar'] = 'Peserta didik baru (<b style="color: #ff0000;">Konversi Eksternal (RPL)</b>)';
+                        $resMhs[$i]['jenis_daftar'] = '(<b style="color: #ff0000;">Konversi Eksternal (RPL)</b>)';
                     } elseif ($kode_daftar == '4') {
                         $resMhs[$i]['jenis_daftar'] = 'Peserta didik baru (<b>Beasiswa KIP</b>)';
                     } elseif ($kode_daftar == '5') {
