@@ -899,8 +899,23 @@ class Mahasiswa extends CI_Controller
                 }
                 if (isset($val['nipd']) && strlen($val['nipd']) >= 9) {
                     $resMhs[$i]['angkatan'] = isset($val['nipd']) ? '20' . substr($val['nipd'], 0, 2) : '';
+                    $kode_daftar = substr($val['nipd'], 5, 1);
+                    if ($kode_daftar == '1') {
+                        $resMhs[$i]['jenis_daftar'] = 'Reguler';
+                    } elseif ($kode_daftar == '2') {
+                        $resMhs[$i]['jenis_daftar'] = 'Konversi Internal (RPL)';
+                    } elseif ($kode_daftar == '3') {
+                        $resMhs[$i]['jenis_daftar'] = 'Konversi Eksternal (RPL)';
+                    } elseif ($kode_daftar == '4') {
+                        $resMhs[$i]['jenis_daftar'] = 'Beasiswa KIP';
+                    } elseif ($kode_daftar == '5') {
+                        $resMhs[$i]['jenis_daftar'] = 'Beasiswa Yayasan';
+                    } else {
+                        $resMhs[$i]['jenis_daftar'] = 'Lainnya';
+                    }
                 } else {
                     $resMhs[$i]['angkatan'] = isset($val['nipd']) ? '200' . substr($val['nipd'], 0, 1) : '';
+                    $resMhs[$i]['jenis_daftar'] = '-';
                 }
 
                 if ($resMhs[$i]['angkatan'] == $d) {

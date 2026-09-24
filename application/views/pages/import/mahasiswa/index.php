@@ -223,6 +223,7 @@
                         <th class="text-center">No</th>
                         <th class="">Nim</th>
                         <th class="">Nama</th>
+                        <th class="">Jenis Pendaftaran</th>
                         <th class="">Jenis Kelamin</th>
                         <th class="">Agama</th>
                         <th class="">Total SKS Diambil</th>
@@ -407,10 +408,11 @@
 
             var filterSyncSelected = Cookies.get("filterSync");
             if (filterSyncSelected !== undefined && filterSyncSelected != 'all') {
-                let html = `<option class="text-center" value="all">-- Semua --</option>`;
+                let html = `<option class="text-center" value="all">-- Semua Status Sync --</option>`;
                 let dataSync = [
-                    { id: 1, desc: "Sudah Sync" },
-                    { id: 0, desc: "Belum Sync" }
+                    { id: 0, desc: "Belum Sync Biodata" },
+                    { id: 1, desc: "Sudah Sync Biodata, Histori Belum" },
+                    { id: 2, desc: "Sudah Sync Semua" }
                 ];
                 $.each(dataSync, function (i, value) {
                     if (value.id === parseInt(filterSyncSelected)) {
@@ -692,6 +694,7 @@
                         html += `<td class="text-center">${no++}</td>`;
                         html += `<td class="">${mhs.nipd}</td>`;
                         html += `<td class=""><a class="btn_detail_mhs" rel="noopener noreferrer" href="javascript:void(0)" id_pd="${mhs.id_pd}" data-toggle="tooltip" title="Lihat Detail"><strong>${mhs.nm_pd}</strong</a></td>`;
+                        html += `<td class="">${mhs.jenis_daftar}</td>`;
                         html += `<td class="">${mhs.jk}</td>`;
                         html += `<td class="">${mhs.nama_agama}</td>`;
                         let totalSks = 0;
