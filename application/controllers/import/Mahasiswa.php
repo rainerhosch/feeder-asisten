@@ -905,9 +905,9 @@ class Mahasiswa extends CI_Controller
                     } elseif ($kode_daftar == '3') {
                         $resMhs[$i]['jenis_daftar'] = '(<b style="color: #ff0000;">Konversi Eksternal (RPL)</b>)';
                     } elseif ($kode_daftar == '4') {
-                        $resMhs[$i]['jenis_daftar'] = 'Peserta didik baru (<b>Beasiswa KIP</b>)';
+                        $resMhs[$i]['jenis_daftar'] = 'Peserta didik baru </br>(<b>Beasiswa KIP</b>)';
                     } elseif ($kode_daftar == '5') {
-                        $resMhs[$i]['jenis_daftar'] = 'Peserta didik baru (<b>Beasiswa Yayasan</b>)';
+                        $resMhs[$i]['jenis_daftar'] = 'Peserta didik baru </br>(<b>Beasiswa Yayasan</b>)';
                     } else {
                         $resMhs[$i]['jenis_daftar'] = 'Lainnya';
                     }
