@@ -1070,14 +1070,16 @@ class Mahasiswa extends CI_Controller
 
     function cek_data_from_feeder(array $data, object $config)
     {
-        $this->__token__ = $data['token'];
-        $nm_pd = $data['nm_pd'];
-        $action = $data['action'];
+        $this->__token__ = isset($data['token']) ? $data['token'] : '';
+        $nm_pd = isset($data['nm_pd']) ? $data['nm_pd'] : '';
+        $action = isset($data['action']) ? $data['action'] : 'GetListMahasiswa';
+
+        $nm_pd_safe = str_replace("'", "''", trim($nm_pd));
 
         $data_param = [
             'token' => $this->__token__,
             "act" => $action,
-            "filter" => "nama_mahasiswa = '" . $nm_pd . "'",
+            "filter" => "nama_mahasiswa = '" . $nm_pd_safe . "'",
             "limit" => "",
             "offset" => ""
         ];
@@ -1105,125 +1107,247 @@ class Mahasiswa extends CI_Controller
             $Conf = $this->feeder->get_data()->row(); // Get data config
             $this->__token__ = get_token($Conf); // Get Token Feeder from config account
 
+            $id_pd = isset($data_post['id_pd']) ? $data_post['id_pd'] : null;
+            $nipd = isset($data_post['nipd']) ? $data_post['nipd'] : '';
+            $nm_pd = isset($data_post['nm_pd']) ? trim($data_post['nm_pd']) : '';
+            $model = 'mahasiswa';
 
-            $id_pd = $data_post['id_pd'];
-            $nipd = $data_post['nipd'];
-            $query = $data_post['query'];
+            $status = false;
+            $res_code = 500;
+            $msg = 'Terjadi kesalahan pada sistem.';
+            $data = ['id_pd' => $id_pd, 'nipd' => $nipd];
 
-            $convert_str = explode(" ", $query);
-            $model = strtolower($convert_str[(count($convert_str) - 1)]);
-            $data_post['action'] = implode($convert_str);
-            $data_post['token'] = $this->__token__; // Get Token Feeder from config account
-
-            $responseArray = $this->cek_data_from_feeder($data_post, $Conf);
-            $data_feeder = $responseArray['data'];
-            $error_code = $responseArray['error_code'];
-            $response_status = $responseArray['error_desc'];
-
-            // dump($responseArray);
-            // die;
-
-            if ($error_code === 0) {
-                // insert data baru ke feeder
-                $param = [
-                    'table' => $model,
-                    'where' => ['id_pd' => $id_pd]
+            if (empty($this->__token__)) {
+                $response = [
+                    'status' => false,
+                    'res_code' => 500,
+                    'msg' => 'Gagal mendapatkan token Feeder. Pastikan username, password, host, dan port Feeder sudah sesuai serta server aktif.',
+                    'data' => $data
                 ];
-                $data_mhs = $this->$model->get_data($param)->row_array();
-                // dump($data_mhs);
-                // die;
+                echo json_encode($response);
+                return;
+            }
 
-                $ds = $data_mhs;
-                $valid_penghasilan = array_column($this->db->get('masterdata_penghasilan')->result_array(), 'id_penghasilan');
-                $valid_kebutuhan = array_column($this->db->get('masterdata_kebutuhan_khusus')->result_array(), 'id_kebutuhan_khusus');
+            // Ambil data mahasiswa dari database lokal
+            $param = [
+                'table' => $model,
+                'where' => ['id_pd' => $id_pd]
+            ];
+            $data_mhs = $this->$model->get_data($param)->row_array();
 
-                $penghasilan_fields = ['id_penghasilan_ayah', 'id_penghasilan_ibu', 'id_penghasilan_wali'];
-                foreach ($penghasilan_fields as $f) {
-                    if (!isset($ds[$f]) || !in_array((string) $ds[$f], $valid_penghasilan)) {
-                        $ds[$f] = '0';
+            if (!$data_mhs) {
+                $response = [
+                    'status' => false,
+                    'res_code' => 404,
+                    'msg' => 'Data mahasiswa tidak ditemukan di database lokal.',
+                    'data' => $data
+                ];
+                echo json_encode($response);
+                return;
+            }
+
+            $ds = $data_mhs;
+            $nik = isset($ds['nik']) ? trim($ds['nik']) : '';
+
+            // Cek apakah mahasiswa ini sudah ada id_feeder di mahasiswa_pt lokal
+            $mpt = $this->$model->get_data([
+                'table' => 'mahasiswa_pt',
+                'where' => ['id_pd' => $id_pd]
+            ])->row_array();
+
+            if (!empty($mpt['id_feeder'])) {
+                $response = [
+                    'status' => true,
+                    'res_code' => 0,
+                    'msg' => 'Data mahasiswa dengan nim ' . $nipd . ' sudah tersinkronisasi ke Feeder.',
+                    'data' => [
+                        'id_pd' => $id_pd,
+                        'nipd' => $nipd,
+                        'id_feeder' => $mpt['id_feeder']
+                    ]
+                ];
+                echo json_encode($response);
+                return;
+            }
+
+            // Sanitasi field masterdata
+            $valid_penghasilan = array_column($this->db->get('masterdata_penghasilan')->result_array(), 'id_penghasilan');
+            $valid_kebutuhan = array_column($this->db->get('masterdata_kebutuhan_khusus')->result_array(), 'id_kebutuhan_khusus');
+
+            $penghasilan_fields = ['id_penghasilan_ayah', 'id_penghasilan_ibu', 'id_penghasilan_wali'];
+            foreach ($penghasilan_fields as $f) {
+                if (!isset($ds[$f]) || !in_array((string) $ds[$f], $valid_penghasilan)) {
+                    $ds[$f] = '0';
+                }
+            }
+
+            $kebutuhan_fields = ['id_kebutuhan_khusus_mahasiswa', 'id_kebutuhan_khusus_ayah', 'id_kebutuhan_khusus_ibu'];
+            foreach ($kebutuhan_fields as $f) {
+                if (!isset($ds[$f]) || !in_array((string) $ds[$f], $valid_kebutuhan)) {
+                    $ds[$f] = '0';
+                }
+            }
+
+            $record_data = [
+                "nama_mahasiswa" => $ds['nm_pd'],
+                "jenis_kelamin" => $ds['jk'],
+                "tempat_lahir" => $ds['tmpt_lahir'],
+                "tanggal_lahir" => $ds['tgl_lahir'],
+                "id_agama" => $ds['id_agama'],
+                "nik" => $ds['nik'],
+                "nisn" => $ds['nisn'],
+                "npwp" => $ds['npwp'],
+                "kewarganegaraan" => $ds['kewarganegaraan'],
+                "jalan" => $ds['jln'],
+                "dusun" => $ds['nm_dsn'],
+                "rt" => $ds['rt'],
+                "rw" => $ds['rw'],
+                "kelurahan" => $ds['ds_kel'],
+                "kode_pos" => $ds['kode_pos'],
+                "id_wilayah" => $ds['id_wil_feeder'],
+                "id_jenis_tinggal" => $ds['id_jns_tinggal'],
+                "id_alat_transportasi" => $ds['id_alat_transport'],
+                "telepon" => $ds['telepon_rumah'],
+                "handphone" => $ds['telepon_seluler'],
+                "email" => $ds['email'],
+                "penerima_kps" => $ds['a_terima_kps'],
+                "nomor_kps" => $ds['no_kps'],
+                // data ibu
+                "nama_ibu_kandung" => $ds['nm_ibu_kandung'],
+                "tanggal_lahir_ibu" => $ds['tgl_lahir_ibu'],
+                "nik_ibu" => $ds['nik_ibu'],
+                "id_kebutuhan_khusus_ibu" => $ds['id_kebutuhan_khusus_ibu'],
+                "id_pendidikan_ibu" => $ds['id_jenjang_pendidikan_ibu'],
+                "id_pekerjaan_ibu" => $ds['id_pekerjaan_ibu'],
+                "id_penghasilan_ibu" => $ds['id_penghasilan_ibu'],
+                // data ayah
+                "nik_ayah" => $ds['nik_ayah'],
+                "nama_ayah" => $ds['nm_ayah'],
+                "tanggal_lahir_ayah" => $ds['tgl_lahir_ayah'],
+                "id_pendidikan_ayah" => $ds['id_jenjang_pendidikan_ayah'],
+                "id_pekerjaan_ayah" => $ds['id_pekerjaan_ayah'],
+                "id_penghasilan_ayah" => $ds['id_penghasilan_ayah'],
+                "id_kebutuhan_khusus_ayah" => $ds['id_kebutuhan_khusus_ayah'],
+                // data wali
+                "nama_wali" => $ds['nm_wali'],
+                "id_pendidikan_wali" => $ds['id_jenjang_pendidikan_wali'],
+                "id_pekerjaan_wali" => $ds['id_pekerjaan_wali'],
+                "id_penghasilan_wali" => $ds['id_penghasilan_wali'],
+                "id_kebutuhan_khusus_mahasiswa" => $ds['id_kebutuhan_khusus_mahasiswa'],
+            ];
+
+            // 1. Cek apakah data sudah ada di Feeder berdasarkan NIK
+            $found_in_feeder = false;
+            $id_mahasiswa_feeder = null;
+
+            if (!empty($nik)) {
+                $fetch_param = [
+                    'token' => $this->__token__,
+                    "act" => 'GetBiodataMahasiswa',
+                    "filter" => "nik = '" . $nik . "'",
+                    "limit" => "1",
+                    "offset" => "0"
+                ];
+                $response_fetch = service_request($fetch_param, $Conf);
+                $arr_fetch = json_decode(json_encode($response_fetch), true);
+
+                if (isset($arr_fetch['error_code']) && $arr_fetch['error_code'] == 0 && !empty($arr_fetch['data']) && isset($arr_fetch['data'][0]['id_mahasiswa'])) {
+                    $found_in_feeder = true;
+                    $id_mahasiswa_feeder = $arr_fetch['data'][0]['id_mahasiswa'];
+                }
+            }
+
+            // Jika belum ditemukan lewat NIK, coba cek via nama
+            if (!$found_in_feeder && !empty($nm_pd)) {
+                $check_data = [
+                    'token' => $this->__token__,
+                    'action' => 'GetListMahasiswa',
+                    'nm_pd' => $nm_pd
+                ];
+                $response_check = $this->cek_data_from_feeder($check_data, $Conf);
+                if (isset($response_check['error_code']) && $response_check['error_code'] == 0 && !empty($response_check['data']) && is_array($response_check['data'])) {
+                    foreach ($response_check['data'] as $c_mhs) {
+                        if (isset($c_mhs['id_mahasiswa'])) {
+                            if (isset($c_mhs['tanggal_lahir']) && $c_mhs['tanggal_lahir'] == $ds['tgl_lahir']) {
+                                $found_in_feeder = true;
+                                $id_mahasiswa_feeder = $c_mhs['id_mahasiswa'];
+                                break;
+                            }
+                        }
                     }
                 }
+            }
 
-                $kebutuhan_fields = ['id_kebutuhan_khusus_mahasiswa', 'id_kebutuhan_khusus_ayah', 'id_kebutuhan_khusus_ibu'];
-                foreach ($kebutuhan_fields as $f) {
-                    if (!isset($ds[$f]) || !in_array((string) $ds[$f], $valid_kebutuhan)) {
-                        $ds[$f] = '0';
-                    }
-                }
-
-                $data_post['record'] = [
-                    "nama_mahasiswa" => $ds['nm_pd'],
-                    "jenis_kelamin" => $ds['jk'],
-                    "tempat_lahir" => $ds['tmpt_lahir'],
-                    "tanggal_lahir" => $ds['tgl_lahir'],
-                    "id_agama" => $ds['id_agama'],
-                    "nik" => $ds['nik'],
-                    "nisn" => $ds['nisn'],
-                    "npwp" => $ds['npwp'],
-                    "kewarganegaraan" => $ds['kewarganegaraan'],
-                    "jalan" => $ds['jln'],
-                    "dusun" => $ds['nm_dsn'],
-                    "rt" => $ds['rt'],
-                    "rw" => $ds['rw'],
-                    "kelurahan" => $ds['ds_kel'],
-                    "kode_pos" => $ds['kode_pos'],
-                    "id_wilayah" => $ds['id_wil_feeder'],
-                    "id_jenis_tinggal" => $ds['id_jns_tinggal'],
-                    "id_alat_transportasi" => $ds['id_alat_transport'],
-                    "telepon" => $ds['telepon_rumah'],
-                    "handphone" => $ds['telepon_seluler'],
-                    "email" => $ds['email'],
-                    "penerima_kps" => $ds['a_terima_kps'],
-                    "nomor_kps" => $ds['no_kps'],
-                    // "id_wilayah"                     =>   $ds['id_wil'],
-
-                    // data ibu
-                    "nama_ibu_kandung" => $ds['nm_ibu_kandung'],
-                    "tanggal_lahir_ibu" => $ds['tgl_lahir_ibu'],
-                    "nik_ibu" => $ds['nik_ibu'],
-                    "id_kebutuhan_khusus_ibu" => $ds['id_kebutuhan_khusus_ibu'],
-                    "id_pendidikan_ibu" => $ds['id_jenjang_pendidikan_ibu'],
-                    "id_pekerjaan_ibu" => $ds['id_pekerjaan_ibu'],
-                    "id_penghasilan_ibu" => $ds['id_penghasilan_ibu'],
-                    "id_kebutuhan_khusus_ibu" => $ds['id_kebutuhan_khusus_ibu'],
-                    // data ayah
-                    "nik_ayah" => $ds['nik_ayah'],
-                    "nama_ayah" => $ds['nm_ayah'],
-                    "tanggal_lahir_ayah" => $ds['tgl_lahir_ayah'],
-                    "id_pendidikan_ayah" => $ds['id_jenjang_pendidikan_ayah'],
-                    "id_pekerjaan_ayah" => $ds['id_pekerjaan_ayah'],
-                    "id_penghasilan_ayah" => $ds['id_penghasilan_ayah'],
-                    "id_kebutuhan_khusus_ayah" => $ds['id_kebutuhan_khusus_ayah'],
-                    // data wali
-                    "nama_wali" => $ds['nm_wali'],
-                    // "tanggal_lahir_wali"            =>   $ds['tgl_lahir_wali'],
-                    "id_pendidikan_wali" => $ds['id_jenjang_pendidikan_wali'],
-                    "id_pekerjaan_wali" => $ds['id_pekerjaan_wali'],
-                    "id_penghasilan_wali" => $ds['id_penghasilan_wali'],
-                    "id_kebutuhan_khusus_mahasiswa" => $ds['id_kebutuhan_khusus_mahasiswa'],
+            if ($found_in_feeder && !empty($id_mahasiswa_feeder)) {
+                // Tautkan id_feeder ke database lokal
+                $update_param = [
+                    'table' => 'mahasiswa_pt',
+                    'where' => ['id_pd' => $id_pd],
+                    'data' => ['id_feeder' => $id_mahasiswa_feeder]
                 ];
-                // var_dump($data_post['record']);
-                // die;
-                $responseArray = $this->insert_data_to_feeder($data_post, $Conf);
-                $data_feeder = $responseArray['data'];
-                $error_code = $responseArray['error_code'];
-                $response_status = $responseArray['error_desc'];
-                // var_dump($responseArray);
-                // die;
-                if ($error_code != 0) {
+                $updated = $this->$model->update_data($update_param);
+                if ($updated) {
+                    $status = true;
+                    $res_code = 0;
+                    $msg = 'Data mahasiswa sudah ada di Feeder. Sinkronisasi id_feeder berhasil ditautkan!';
+                    $data = [
+                        'id_pd' => $id_pd,
+                        'nipd' => $nipd,
+                        'id_feeder' => $id_mahasiswa_feeder
+                    ];
+                } else {
+                    $status = false;
+                    $res_code = 500;
+                    $msg = 'Gagal menyimpan id_feeder ke database lokal.';
+                    $data = ['id_pd' => $id_pd, 'nipd' => $nipd];
+                }
+            } else {
+                // Lakukan Insert Biodata Baru ke Feeder
+                $insert_payload = [
+                    'token' => $this->__token__,
+                    'record' => $record_data
+                ];
+                $responseArray = $this->insert_data_to_feeder($insert_payload, $Conf);
+                $data_feeder = isset($responseArray['data']) ? $responseArray['data'] : null;
+                $error_code = isset($responseArray['error_code']) ? $responseArray['error_code'] : 500;
+                $response_status = isset($responseArray['error_desc']) ? $responseArray['error_desc'] : 'Gagal mengirim data ke Feeder';
+
+                if ($error_code == 0 && isset($data_feeder['id_mahasiswa'])) {
+                    $update_param = [
+                        'table' => 'mahasiswa_pt',
+                        'where' => ['id_pd' => $id_pd],
+                        'data' => ['id_feeder' => $data_feeder['id_mahasiswa']]
+                    ];
+                    $updated = $this->$model->update_data($update_param);
+                    if ($updated) {
+                        $status = true;
+                        $res_code = 0;
+                        $msg = 'Data mahasiswa dengan nim ' . $nipd . ' berhasil ditambahkan ke feeder!';
+                        $data = [
+                            'id_pd' => $id_pd,
+                            'nipd' => $nipd,
+                            'id_feeder' => $data_feeder['id_mahasiswa']
+                        ];
+                    } else {
+                        $status = false;
+                        $res_code = 500;
+                        $msg = 'Biodata masuk ke Feeder, tapi gagal menyimpan id_feeder ke database lokal.';
+                        $data = ['id_pd' => $id_pd, 'nipd' => $nipd];
+                    }
+                } else {
+                    // Cek jika error karena NIK sudah terdaftar
                     if (strpos(strtolower($response_status), 'nik sudah digunakan') !== false || (strpos(strtolower($response_status), 'nik') !== false && strpos(strtolower($response_status), 'sudah ada') !== false)) {
                         $fetch_param = [
                             'token' => $this->__token__,
                             "act" => 'GetBiodataMahasiswa',
-                            "filter" => "nik = '" . $data_post['record']['nik'] . "'",
+                            "filter" => "nik = '" . $record_data['nik'] . "'",
                             "limit" => "1",
                             "offset" => "0"
                         ];
                         $response_fetch = service_request($fetch_param, $Conf);
-                        $json_fetch = json_encode($response_fetch);
-                        $arr_fetch = json_decode($json_fetch, true);
+                        $arr_fetch = json_decode(json_encode($response_fetch), true);
 
-                        if ($arr_fetch['error_code'] == 0 && count($arr_fetch['data']) > 0) {
+                        if (isset($arr_fetch['error_code']) && $arr_fetch['error_code'] == 0 && !empty($arr_fetch['data']) && isset($arr_fetch['data'][0]['id_mahasiswa'])) {
                             $id_feeder = $arr_fetch['data'][0]['id_mahasiswa'];
 
                             $update_param = [
@@ -1235,7 +1359,7 @@ class Mahasiswa extends CI_Controller
                             if ($updated) {
                                 $status = true;
                                 $res_code = 0;
-                                $msg = 'Data sudah ada di Feeder. Sinkronisasi id_feeder (NIK: ' . $data_post['record']['nik'] . ') berhasil ditautkan!';
+                                $msg = 'Data sudah ada di Feeder. Sinkronisasi id_feeder (NIK: ' . $record_data['nik'] . ') berhasil ditautkan!';
                                 $data = [
                                     'id_pd' => $id_pd,
                                     'nipd' => $nipd,
@@ -1257,79 +1381,8 @@ class Mahasiswa extends CI_Controller
                         $status = false;
                         $res_code = $error_code;
                         $msg = $response_status;
-                        $data = [
-                            'id_pd' => $id_pd,
-                            'nipd' => $nipd
-                        ];
+                        $data = ['id_pd' => $id_pd, 'nipd' => $nipd];
                     }
-                } else {
-                    // query insert id feeder ke simak
-                    $update_param = [
-                        'table' => 'mahasiswa_pt',
-                        'where' => [
-                            'id_pd' => $id_pd
-                        ],
-                        'data' => [
-                            'id_feeder' => $data_feeder['id_mahasiswa'],
-                        ]
-                    ];
-                    $updated = $this->$model->update_data($update_param);
-                    if (!$updated) {
-                        $status = false;
-                        $res_code = 500;
-                        $msg = "ERROR, entah kenapa";
-                        $data = $data_feeder['id_mahasiswa'];
-                    } else {
-                        $status = true;
-                        $res_code = $error_code;
-                        $msg = 'Data mahasiswa dengan nim ' . $nipd . ' berhasil ditambahkan ke feeder!';
-                        $data = [
-                            'id_pd' => $id_pd,
-                            'nipd' => $nipd,
-                            'id_feeder' => $data_feeder['id_mahasiswa']
-                        ];
-                    }
-                }
-            } else {
-                // insert id_pd_feeder ke simak untuk keperluan update data
-                if ($error_code != 121) {
-                    foreach ($data_feeder as $val) {
-                        $update_param = [
-                            'table' => 'mahasiswa_pt',
-                            'where' => [
-                                'id_pd' => $id_pd
-                            ],
-                            'data' => [
-                                'id_feeder' => $val['id_mahasiswa'],
-                            ]
-                        ];
-                        $update = $this->$model->update_data($update_param);
-                        if (!$update) {
-                            // update gagal
-                            $status = false;
-                            $res_code = $error_code;
-                            $msg = 'Id Feeder mahasiswa, gagal di insert ke simak!';
-                            $data = [
-                                'id_pd' => $id_pd,
-                                'nipd' => $nipd,
-                                'id_feeder' => $val['id_mahasiswa']
-                            ];
-                        } else {
-                            $status = true;
-                            $res_code = $error_code;
-                            $msg = 'Id Feeder berhasil di insert ke simak!';
-                            $data = [
-                                'id_pd' => $id_pd,
-                                'nipd' => $nipd,
-                                'id_feeder' => $val['id_mahasiswa']
-                            ];
-                        }
-                    }
-                } else {
-                    $status = false;
-                    $res_code = $error_code;
-                    $msg = $response_status;
-                    $data = null;
                 }
             }
 
@@ -1339,6 +1392,8 @@ class Mahasiswa extends CI_Controller
                 'msg' => $msg,
                 'data' => $data
             ];
+            echo json_encode($response);
+            return;
         } else {
             $response = [
                 'status' => false,
@@ -1346,8 +1401,9 @@ class Mahasiswa extends CI_Controller
                 'msg' => 'Invalid Request',
                 'data' => null
             ];
+            echo json_encode($response);
+            return;
         }
-        echo json_encode($response);
     }
 
     public function sync_batch()

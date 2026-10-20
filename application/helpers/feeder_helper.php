@@ -102,7 +102,38 @@ function check_token(object $config)
 }
 function get_api_endpoint(object $config)
 {
-    $url = 'http://' . $config->host . ':' . $config->port . '/ws/live2.php'; // gunakan live
+    $host = trim($config->host);
+    $port = isset($config->port) ? trim((string)$config->port) : '';
+
+    // Cek apakah host sudah memiliki skema protokol (http:// atau https://)
+    if (preg_match('#^https?://#i', $host)) {
+        $parsed = parse_url($host);
+        $scheme = isset($parsed['scheme']) ? strtolower($parsed['scheme']) . '://' : 'http://';
+        $host_only = isset($parsed['host']) ? $parsed['host'] : $host;
+        if (empty($port) && isset($parsed['port'])) {
+            $port = (string)$parsed['port'];
+        }
+        $host = $host_only;
+    } else {
+        // Jika port 443 atau 8443, atau host adalah domain (bukan IP) dan port kosong -> gunakan HTTPS
+        if ($port == '443' || $port == '8443') {
+            $scheme = 'https://';
+        } elseif (empty($port) && !filter_var($host, FILTER_VALIDATE_IP)) {
+            $scheme = 'https://';
+        } else {
+            $scheme = 'http://';
+        }
+    }
+
+    $host = rtrim($host, '/');
+
+    // Jika port diisi dan bukan port default 80 atau 443, cantumkan port
+    if (!empty($port) && $port != '80' && $port != '443') {
+        $url = $scheme . $host . ':' . $port . '/ws/live2.php';
+    } else {
+        $url = $scheme . $host . '/ws/live2.php';
+    }
+
     return $url;
 }
 
@@ -126,8 +157,14 @@ function service_request($data, object $config)
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_ENCODING, '');
     curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_POSTREDIR, 3);
+
+    // Support SSL / HTTPS tunnels (Let's Encrypt / Cloudflare / Self-signed)
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
     curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
     curl_setopt($ch, CURLOPT_URL, $url);

@@ -8,7 +8,8 @@
     <div class="content-header">
         <div class="header-section">
             <h1>
-                <?= $this->session->flashdata('icon'); ?>Status koneksi:<br><small><?= $this->session->flashdata('message'); ?></small>
+                <?= $this->session->flashdata('icon'); ?>Status
+                koneksi:<br><small><?= $this->session->flashdata('message'); ?></small>
             </h1>
         </div>
     </div>
@@ -18,7 +19,8 @@
         </div>
         <div class="row m-5 divInitialData" style="margin-bottom: 5px;" hidden>
             <div class="col-md-2">
-                <button class="btn btn-sm btn-info btnInitialData" data-toggle="modal" data-target="#addModal">Initialisasi <i class="fa fa-plus"></i></button>
+                <button class="btn btn-sm btn-info btnInitialData" data-toggle="modal"
+                    data-target="#addModal">Initialisasi <i class="fa fa-plus"></i></button>
             </div>
         </div>
         <div class="table-responsive">
@@ -40,7 +42,8 @@
     </div>
 
     <!-- Edit Modal -->
-    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -53,12 +56,15 @@
                     <form action="#" method="post" id="form-edit-config">
                         <input type="hidden" id="editId">
                         <div class="form-group">
-                            <label for="editHost">Host</label>
-                            <input type="text" class="form-control" id="editHost" required>
+                            <label for="editHost">Host / Domain</label>
+                            <input type="text" class="form-control" id="editHost"
+                                placeholder="IP Address atau Domain (contoh: wsfeeder.wastukancana.ac.id)" required>
                         </div>
                         <div class="form-group">
-                            <label for="editPort">Port</label>
-                            <input type="text" class="form-control" id="editPort" required>
+                            <label for="editPort">Port <small class="text-muted">(Kosongkan jika menggunakan domain /
+                                    tunnel)</small></label>
+                            <input type="text" class="form-control" id="editPort"
+                                placeholder="Opsional jika menggunakan domain">
                         </div>
                         <div class="form-group">
                             <label for="editUsername">Username</label>
@@ -76,7 +82,8 @@
     </div>
 
     <!-- Modal -->
-    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -88,21 +95,28 @@
                 <div class="modal-body">
                     <form action="#" method="post" id="form-config">
                         <div class="form-group">
-                            <label for="inputHost">Host</label>
-                            <input type="text" class="form-control" id="inputHost" aria-describedby="hostHelp" placeholder="Enter host or ip address FEEDER" value="127.0.0.1" required>
-                            <small id="hostHelp" class="form-text text-muted">jika aplikasi FEEDER dan MFA di install pada komputer yang berbeda, isi dengan ip address atau alamat domain </small>
+                            <label for="inputHost">Host / Domain</label>
+                            <input type="text" class="form-control" id="inputHost" aria-describedby="hostHelp"
+                                placeholder="Enter host, IP address, atau domain FEEDER" value="127.0.0.1" required>
+                            <small id="hostHelp" class="form-text text-muted">Bisa diisi IP Address (contoh:
+                                180.178.111.253) atau Domain Tunnel (contoh: wsfeeder.wastukancana.ac.id atau
+                                https://wsfeeder.wastukancana.ac.id).</small>
                         </div>
                         <div class="form-group">
-                            <label for="inputPort">Port</label>
-                            <input type="text" class="form-control" id="inputPort" placeholder="Enter Port FEEDER" required>
+                            <label for="inputPort">Port <small class="text-muted">(Kosongkan jika menggunakan domain /
+                                    tunnel)</small></label>
+                            <input type="text" class="form-control" id="inputPort"
+                                placeholder="Opsional jika menggunakan domain">
                         </div>
                         <div class="form-group">
                             <label for="inputUsername">Username</label>
-                            <input type="text" class="form-control" id="inputUsername" placeholder="Enter Username FEEDER" required>
+                            <input type="text" class="form-control" id="inputUsername"
+                                placeholder="Enter Username FEEDER" required>
                         </div>
                         <div class="form-group">
                             <label for="inputPassword">Password</label>
-                            <input type="password" class="form-control" id="inputPassword" placeholder="Enter Password FEEDER" required>
+                            <input type="password" class="form-control" id="inputPassword"
+                                placeholder="Enter Password FEEDER" required>
                         </div>
                         <button type="submit" class="btn btn-primary">Simpan</button>
                     </form>
@@ -112,8 +126,8 @@
     </div>
 
     <script>
-        $(document).ready(function() {
-            $('#form-edit-config').on('submit', function(e) {
+        $(document).ready(function () {
+            $('#form-edit-config').on('submit', function (e) {
                 e.preventDefault();
                 var id = $('#editId').val();
                 var username = $('#editUsername').val();
@@ -134,7 +148,7 @@
                         password: password
                     },
                     dataType: "JSON",
-                    success: function(response) {
+                    success: function (response) {
                         if (response.code === 200) {
                             title = `Success`;
                             icon = `success`;
@@ -157,7 +171,7 @@
                 });
             });
 
-            $('#form-config').on('submit', function(e) {
+            $('#form-config').on('submit', function (e) {
                 e.preventDefault();
                 var username = $('#inputUsername').val();
                 var password = $('#inputPassword').val();
@@ -176,7 +190,7 @@
                         password: password
                     },
                     dataType: "JSON",
-                    success: function(response) {
+                    success: function (response) {
                         // console.log(response)
                         if (response.code === 200) {
                             title = `Success`;
@@ -206,18 +220,18 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 },
                 dataType: "JSON",
-                success: function(response) {
+                success: function (response) {
                     // console.log(response);
                     if (response.data === null) {
                         $('.divInitialData').prop('hidden', false);
                     }
                     let html = ``;
-                    $.each(response.data, function(i, item) {
+                    $.each(response.data, function (i, item) {
                         html += `<tr>`;
                         html += `<td>${item.nm_lembaga}</td>`;
                         html += `<td>${item.username}</td>`;
                         html += `<td>${item.host}</td>`;
-                        html += `<td>${item.port}</td>`;
+                        html += `<td>${item.port ? item.port : '-'}</td>`;
                         html += `<td class="text-center">`;
                         if (item.status_connected === 'Y') {
                             html += `<button type="button" class="btn btn-success btn-xs">Connected</button>`;
@@ -235,24 +249,24 @@
                         html += `</tr>`;
                     });
                     $('#tbody_config_feeder').html(html);
-                    
-                    $('.btnEdit').on('click', function() {
+
+                    $('.btnEdit').on('click', function () {
                         var id = $(this).data('id');
                         var host = $(this).data('host');
                         var port = $(this).data('port');
                         var username = $(this).data('username');
                         var password = $(this).data('password');
-                        
+
                         $('#editId').val(id);
                         $('#editHost').val(host);
                         $('#editPort').val(port);
                         $('#editUsername').val(username);
                         $('#editPassword').val(password);
-                        
+
                         $('#editModal').modal('show');
                     });
 
-                    $('.btnDelete').on('click', function() {
+                    $('.btnDelete').on('click', function () {
                         let id = $(this).data("id");
                         // console.log(id)
                         Swal.fire({
@@ -275,7 +289,7 @@
                                         id: id,
                                     },
                                     dataType: "JSON",
-                                    success: function(response) {
+                                    success: function (response) {
                                         if (response.code === 200) {
                                             title = `Success`;
                                             icon = `success`;

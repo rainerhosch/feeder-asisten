@@ -55,7 +55,7 @@ class Config extends CI_Controller
         if ($this->input->is_ajax_request()) {
             $data = [];
             $Conf = $this->feeder->get_data()->row();
-            if (count((array)$Conf) > 0) {
+            if (count((array) $Conf) > 0) {
                 $this->__token__ = get_token($Conf);
                 $dataConfig = $this->feeder->get_data()->result_array();
                 $data = $dataConfig;
@@ -75,25 +75,25 @@ class Config extends CI_Controller
                 }
                 if (!$data) {
                     $response = [
-                        'status'    => false,
-                        'code'      => 404,
-                        'message'   => 'Data tidak ada.',
-                        'data'      => null
+                        'status' => false,
+                        'code' => 404,
+                        'message' => 'Data tidak ada.',
+                        'data' => null
                     ];
                 } else {
                     $response = [
-                        'status'    => true,
-                        'code'      => 200,
-                        'message'   => 'Success',
-                        'data'      => $data
+                        'status' => true,
+                        'code' => 200,
+                        'message' => 'Success',
+                        'data' => $data
                     ];
                 }
             } else {
                 $response = [
-                    'status'    => false,
-                    'code'      => 500,
-                    'message'   => 'Data config feeder tidak ada.',
-                    'data'      => null
+                    'status' => false,
+                    'code' => 500,
+                    'message' => 'Data config feeder tidak ada.',
+                    'data' => null
                 ];
             }
             echo json_encode($response);
@@ -107,11 +107,11 @@ class Config extends CI_Controller
         if ($this->input->is_ajax_request()) {
             $data_post = $this->input->post();
             $data_insert = [
-                'id_pt'        => null,
-                'username'          => mfaEncrypt($data_post['username']),
-                'password'          => mfaEncrypt($data_post['password']),
-                'host'              => $data_post['host'],
-                'port'              => $data_post['port'],
+                'id_pt' => null,
+                'username' => mfaEncrypt($data_post['username']),
+                'password' => mfaEncrypt($data_post['password']),
+                'host' => trim($data_post['host']),
+                'port' => isset($data_post['port']) ? trim($data_post['port']) : '',
                 // 'id_sp'             => null,
                 // 'live'              => '',
                 // 'status_connected'  => '',
@@ -119,17 +119,17 @@ class Config extends CI_Controller
             $insert = $this->feeder->insert_data($data_insert);
             if (!$insert) {
                 $response = [
-                    'status'    => false,
-                    'code'      => 500,
-                    'message'   => 'Inisialisasi gagal..',
-                    'data'      => null
+                    'status' => false,
+                    'code' => 500,
+                    'message' => 'Inisialisasi gagal..',
+                    'data' => null
                 ];
             } else {
                 $response = [
-                    'status'    => true,
-                    'code'      => 200,
-                    'message'   => 'Success',
-                    'data'      => 1
+                    'status' => true,
+                    'code' => 200,
+                    'message' => 'Success',
+                    'data' => 1
                 ];
             }
             echo json_encode($response);
@@ -143,25 +143,25 @@ class Config extends CI_Controller
         if ($this->input->is_ajax_request()) {
             $data_post = $this->input->post();
             $data_update = [
-                'username'          => mfaEncrypt($data_post['username']),
-                'password'          => mfaEncrypt($data_post['password']),
-                'host'              => $data_post['host'],
-                'port'              => $data_post['port'],
+                'username' => mfaEncrypt($data_post['username']),
+                'password' => mfaEncrypt($data_post['password']),
+                'host' => trim($data_post['host']),
+                'port' => isset($data_post['port']) ? trim($data_post['port']) : '',
             ];
             $update = $this->feeder->update_data($data_update, ['id' => $data_post['id']]);
             if (!$update) {
                 $response = [
-                    'status'    => false,
-                    'code'      => 500,
-                    'message'   => 'Update gagal..',
-                    'data'      => null
+                    'status' => false,
+                    'code' => 500,
+                    'message' => 'Update gagal..',
+                    'data' => null
                 ];
             } else {
                 $response = [
-                    'status'    => true,
-                    'code'      => 200,
-                    'message'   => 'Data konfig berhasil diupdate',
-                    'data'      => 1
+                    'status' => true,
+                    'code' => 200,
+                    'message' => 'Data konfig berhasil diupdate',
+                    'data' => 1
                 ];
             }
             echo json_encode($response);
@@ -177,17 +177,17 @@ class Config extends CI_Controller
             $delete = $this->feeder->delete_data(['id' => $data_post['id']]);
             if (!$delete) {
                 $response = [
-                    'status'    => false,
-                    'code'      => 500,
-                    'message'   => 'Internal Server Error',
-                    'data'      => null
+                    'status' => false,
+                    'code' => 500,
+                    'message' => 'Internal Server Error',
+                    'data' => null
                 ];
             } else {
                 $response = [
-                    'status'    => true,
-                    'code'      => 200,
-                    'message'   => 'Data konfig berhasil dihapus',
-                    'data'      => 1
+                    'status' => true,
+                    'code' => 200,
+                    'message' => 'Data konfig berhasil dihapus',
+                    'data' => 1
                 ];
             }
             echo json_encode($response);
